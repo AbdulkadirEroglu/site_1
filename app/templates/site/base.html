@@ -20,43 +20,7 @@
                 <a href="/catalog" class="nav-link {% if page == 'catalog' %}is-active{% endif %}">Catalog</a>
                 <a href="/contact" class="nav-link {% if page == 'contact' %}is-active{% endif %}">Contact</a>
             </nav>
-            <div class="header-actions">
-                <div class="cart-menu">
-                    <button class="cart-toggle" type="button" aria-expanded="false" aria-haspopup="true" aria-controls="cart-preview">
-                        <span class="sr-only">Open cart preview</span>
-                        <svg aria-hidden="true" focusable="false" viewBox="0 0 24 24">
-                            <path d="M7.5 5h-.75a.75.75 0 0 0 0 1.5h.618l.955 9.11A2.25 2.25 0 0 0 10.557 17.5h6.636a2.25 2.25 0 0 0 2.229-1.964l.75-5.625A1.5 1.5 0 0 0 18.687 8.5H8.662l-.156-1.49A2.25 2.25 0 0 0 7.5 5Zm2.265 12.25a.75.75 0 1 1 0 1.5.75.75 0 0 1 0-1.5Zm7.5 0a.75.75 0 1 1 0 1.5.75.75 0 0 1 0-1.5Z" />
-                        </svg>
-                        <span class="cart-count" aria-label="Items in cart">3</span>
-                    </button>
-                    <div class="cart-dropdown" id="cart-preview" role="menu">
-                        <header>
-                            <h3>Cart preview</h3>
-                            <p>Parts selected for your quote.</p>
-                        </header>
-                        <ul class="cart-items">
-                            <li>
-                                <span class="item-name">Hydraulic Pump Assembly</span>
-                                <span class="item-meta">OEM 4712-A · Part HP-827</span>
-                            </li>
-                            <li>
-                                <span class="item-name">Fuel Injector Valve</span>
-                                <span class="item-meta">OEM 7720-C · Part FJ-442</span>
-                            </li>
-                            <li>
-                                <span class="item-name">Air Filtration Kit</span>
-                                <span class="item-meta">OEM 3301-K · Part AF-112</span>
-                            </li>
-                        </ul>
-                        <div class="cart-actions">
-                            <button class="btn ghost" type="button">Clear cart</button>
-                            <button class="btn secondary" type="button">Download PDF</button>
-                            <button class="btn primary" type="button">Request quote</button>
-                        </div>
-                    </div>
-                </div>
-                <a class="nav-link admin-link" href="/admin/login">Admin</a>
-            </div>
+            <a class="nav-link admin-link" href="/admin/login">Admin</a>
         </div>
     </header>
     <main class="site-main">
@@ -74,6 +38,5 @@
             </div>
         </div>
     </footer>
-    <script src="{{ url_for('static', path='js/site.js') }}" defer></script>
 </body>
 </html>
