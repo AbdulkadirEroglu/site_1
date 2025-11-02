@@ -36,3 +36,42 @@
     </main>
 </div>
 {% endblock %}
+
+{% extends "admin/base.html" %}
+
+{% block layout %}
+<div class="admin-shell">
+    {% include "admin/partials/sidebar.html" %}
+    <main class="admin-content">
+        <header class="admin-header">
+            <h1>Dashboard</h1>
+            <button class="btn primary">New product</button>
+        </header>
+        <section class="stats-grid">
+            <article>
+                <span class="label">Live products</span>
+                <span class="metric">128</span>
+            </article>
+            <article>
+                <span class="label">Categories</span>
+                <span class="metric">12</span>
+            </article>
+            <article>
+                <span class="label">Pending approvals</span>
+                <span class="metric">4</span>
+            </article>
+        </section>
+        <section class="panel">
+            <header>
+                <h2>Latest updates</h2>
+                <a href="#">View all</a>
+            </header>
+            <ul class="activity-list">
+                <li><span class="dot"></span> Added “Aurora Wireless Headphones” to Electronics</li>
+                <li><span class="dot"></span> Updated pricing for “Luna Smart Lamp”</li>
+                <li><span class="dot"></span> Created new category “Wellness”</li>
+            </ul>
+        </section>
+    </main>
+</div>
+{% endblock %}
