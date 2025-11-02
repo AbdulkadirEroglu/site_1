@@ -17,9 +17,9 @@ class Category(Base, TimestampMixin):
     slug = Column(String(160), nullable=False, unique=True)
     description = Column(Text, nullable=True)
     is_active = Column(Boolean, default=True, nullable=False)
-
+    level = Column(Integer, nullable=False, default=0)
+    order = Column(Integer, nullable=False, default=0)
     products = relationship("Product", back_populates="category", cascade="all, delete-orphan")
-
 
 class Product(Base, TimestampMixin):
     __tablename__ = "products"
