@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>{% block title %}{{ page|title }} · Product Catalog{% endblock %}</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="{{ url_for('static', path='css/site.css') }}" />
+</head>
+<body class="site-body">
+    <header class="site-header">
+        <div class="container header-inner">
+            <a href="/" class="brand">NovaCommerce</a>
+            <nav class="primary-nav" aria-label="Main navigation">
+                <a href="/" class="nav-link {% if page == 'home' %}is-active{% endif %}">Home</a>
+                <a href="/about" class="nav-link {% if page == 'about' %}is-active{% endif %}">About</a>
+                <a href="/products" class="nav-link {% if page == 'products' %}is-active{% endif %}">Products</a>
+                <a href="/catalog" class="nav-link {% if page == 'catalog' %}is-active{% endif %}">Catalog</a>
+                <a href="/contact" class="nav-link {% if page == 'contact' %}is-active{% endif %}">Contact</a>
+            </nav>
+            <a class="nav-link admin-link" href="/admin/login">Admin</a>
+        </div>
+    </header>
+    <main class="site-main">
+        {% block hero %}{% endblock %}
+        <div class="container">
+            {% block content %}{% endblock %}
+        </div>
+    </main>
+    <footer class="site-footer">
+        <div class="container footer-inner">
+            <p>&copy; {{ now().year }} NovaCommerce. All rights reserved.</p>
+            <div class="footer-links">
+                <a href="/privacy">Privacy</a>
+                <a href="/terms">Terms</a>
+            </div>
+        </div>
+    </footer>
+</body>
+</html>

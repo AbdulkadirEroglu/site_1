@@ -1,0 +1,44 @@
+{% extends "site/base.html" %}
+
+{% block hero %}
+<section class="hero">
+    <div class="container hero-inner">
+        <div>
+            <p class="eyebrow">Modern Commerce Platform</p>
+            <h1>Showcase your products with confidence.</h1>
+            <p>Launch a flexible storefront with integrated catalog, marketing pages, and a robust admin suite built on FastAPI.</p>
+            <div class="hero-actions">
+                <a class="btn primary" href="/catalog">Explore Catalog</a>
+                <a class="btn secondary" href="/contact">Talk to Sales</a>
+            </div>
+        </div>
+        <div class="hero-card">
+            <div class="hero-metric">
+                <span class="metric">1200+</span>
+                <span class="label">Products managed</span>
+            </div>
+            <div class="hero-metric">
+                <span class="metric">45%</span>
+                <span class="label">Faster updates</span>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}
+
+{% block content %}
+<section class="grid highlights">
+    <article>
+        <h2>Unified storefront</h2>
+        <p>Home, catalog, and marketing pages share a cohesive design system so shoppers always know where they are.</p>
+    </article>
+    <article>
+        <h2>Admin ready</h2>
+        <p>Login, dashboard, and catalog management experiences are prepared for integration with authentication and APIs.</p>
+    </article>
+    <article>
+        <h2>Built on FastAPI</h2>
+        <p>Serve pages, APIs, and assets from a single Python stack with room to grow into a full e-commerce platform.</p>
+    </article>
+</section>
+{% endblock %}

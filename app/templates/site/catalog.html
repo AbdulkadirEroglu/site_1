@@ -1,0 +1,43 @@
+{% extends "site/base.html" %}
+
+{% block content %}
+<section class="page-header">
+    <h1>Product Catalog</h1>
+    <p>Browse a structured layout ready to connect with live product data and filters.</p>
+</section>
+<section class="catalog-layout">
+    <aside class="catalog-sidebar">
+        <h2>Filters</h2>
+        <div class="filter-group">
+            <label>Search</label>
+            <input type="search" placeholder="Search products" />
+        </div>
+        <div class="filter-group">
+            <label>Category</label>
+            <select>
+                <option>All categories</option>
+                <option>Accessories</option>
+                <option>Electronics</option>
+            </select>
+        </div>
+        <div class="filter-group">
+            <label>Price range</label>
+            <input type="range" min="0" max="1000" />
+        </div>
+    </aside>
+    <div class="catalog-results">
+        <div class="catalog-grid">
+            {% for _ in range(6) %}
+            <article class="catalog-card">
+                <div class="placeholder-image"></div>
+                <div class="catalog-card-content">
+                    <h3>Product title</h3>
+                    <p>Short description about the product to show how copy will wrap across the layout.</p>
+                    <span class="price">$00.00</span>
+                </div>
+            </article>
+            {% endfor %}
+        </div>
+    </div>
+</section>
+{% endblock %}
