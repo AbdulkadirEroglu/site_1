@@ -28,9 +28,8 @@ class Product(Base, TimestampMixin):
     category_id = Column(Integer, ForeignKey("categories.id", ondelete="SET NULL"))
     name = Column(String(160), nullable=False)
     sku = Column(String(120), nullable=False, unique=True)
+    oem_number = Column(String(60), nullable=False, unique=True)
     summary = Column(Text, nullable=True)
-    price = Column(Numeric(10, 2), nullable=False)
-    currency = Column(String(3), default="USD", nullable=False)
     is_active = Column(Boolean, default=True, nullable=False)
 
     category = relationship("Category", back_populates="products")
