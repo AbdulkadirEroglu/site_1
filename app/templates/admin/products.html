@@ -1,0 +1,41 @@
+{% extends "admin/base.html" %}
+
+{% block layout %}
+<div class="admin-shell">
+    {% include "admin/partials/sidebar.html" %}
+    <main class="admin-content">
+        <header class="admin-header">
+            <h1>Products</h1>
+            <button class="btn primary">Add product</button>
+        </header>
+        <section class="panel">
+            <header>
+                <h2>Product catalog</h2>
+                <input type="search" placeholder="Search products" />
+            </header>
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>Name</th>
+                        <th>SKU</th>
+                        <th>OEM Reference</th>
+                        <th>Status</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for _ in range(5) %}
+                    <tr>
+                        <td>Sample product</td>
+                        <td>SKU-0001</td>
+                        <td>OEM 4712-A</td>
+                        <td><span class="status-pill success">Active</span></td>
+                        <td><a href="#">Edit</a></td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </section>
+    </main>
+</div>
+{% endblock %}
