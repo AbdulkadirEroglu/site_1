@@ -1,0 +1,32 @@
+{% extends "site/base.html" %}
+
+{% block content %}
+<section class="page-header">
+    <h1>Contact us</h1>
+    <p>Tell us about your product catalog goals and we will schedule a guided walkthrough.</p>
+</section>
+<section class="two-column contact">
+    <article>
+        <form class="contact-form">
+            <label>
+                Name
+                <input type="text" placeholder="Ada Lovelace" />
+            </label>
+            <label>
+                Email
+                <input type="email" placeholder="ada@example.com" />
+            </label>
+            <label>
+                How can we help?
+                <textarea rows="5" placeholder="Share a quick summary of your project..."></textarea>
+            </label>
+            <button type="submit" class="btn primary">Send message</button>
+        </form>
+    </article>
+    <article class="contact-details">
+        <h2>Prefer to talk directly?</h2>
+        <p>Email <a href="mailto:hello@novacommerce.dev">hello@novacommerce.dev</a> or call <a href="tel:+14155550123">(415) 555-0123</a>.</p>
+        <p>Our team is available Monday–Friday, 9am–6pm PST.</p>
+    </article>
+</section>
+{% endblock %}

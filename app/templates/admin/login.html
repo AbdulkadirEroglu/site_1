@@ -1,0 +1,20 @@
+{% extends "admin/base.html" %}
+
+{% block layout %}
+<section class="auth-container">
+    <form class="auth-card">
+        <h1>Admin login</h1>
+        <p class="subtitle">Access the NovaCommerce control center.</p>
+        <label>
+            Email
+            <input type="email" placeholder="admin@example.com" />
+        </label>
+        <label>
+            Password
+            <input type="password" placeholder="Enter password" />
+        </label>
+        <button type="submit" class="btn primary">Sign in</button>
+        <p class="support">Forgot your password? <a href="#">Reset it here</a>.</p>
+    </form>
+</section>
+{% endblock %}

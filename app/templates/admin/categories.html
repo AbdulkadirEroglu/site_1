@@ -1,0 +1,39 @@
+{% extends "admin/base.html" %}
+
+{% block layout %}
+<div class="admin-shell">
+    {% include "admin/partials/sidebar.html" %}
+    <main class="admin-content">
+        <header class="admin-header">
+            <h1>Categories</h1>
+            <button class="btn primary">Add category</button>
+        </header>
+        <section class="panel">
+            <header>
+                <h2>Category library</h2>
+                <input type="search" placeholder="Search categories" />
+            </header>
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>Name</th>
+                        <th>Products</th>
+                        <th>Status</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for _ in range(4) %}
+                    <tr>
+                        <td>Accessories</td>
+                        <td>32</td>
+                        <td><span class="status-pill success">Active</span></td>
+                        <td><a href="#">Edit</a></td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </section>
+    </main>
+</div>
+{% endblock %}
