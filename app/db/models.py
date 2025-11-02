@@ -1,0 +1,36 @@
+from sqlalchemy import Boolean, Column, DateTime, ForeignKey, Integer, Numeric, String, Text, func
+from sqlalchemy.orm import declarative_base, relationship
+
+Base = declarative_base()
+
+
+class TimestampMixin:
+    created_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
+    updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now(), nullable=False)
+
+
+class Category(Base, TimestampMixin):
+    __tablename__ = "categories"
+
+    id = Column(Integer, primary_key=True, index=True)
+    name = Column(String(120), nullable=False, unique=True)
+    slug = Column(String(160), nullable=False, unique=True)
+    description = Column(Text, nullable=True)
+    is_active = Column(Boolean, default=True, nullable=False)
+
+    products = relationship("Product", back_populates="category", cascade="all, delete-orphan")
+
+
+class Product(Base, TimestampMixin):
+    __tablename__ = "products"
+
+    id = Column(Integer, primary_key=True, index=True)
+    category_id = Column(Integer, ForeignKey("categories.id", ondelete="SET NULL"))
+    name = Column(String(160), nullable=False)
+    sku = Column(String(120), nullable=False, unique=True)
+    summary = Column(Text, nullable=True)
+    price = Column(Numeric(10, 2), nullable=False)
+    currency = Column(String(3), default="USD", nullable=False)
+    is_active = Column(Boolean, default=True, nullable=False)
+
+    category = relationship("Category", back_populates="products")
