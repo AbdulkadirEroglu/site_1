@@ -9,8 +9,8 @@
     <aside class="catalog-sidebar">
         <h2>Filters</h2>
         <div class="filter-group">
-            <label>Search</label>
-            <input type="search" placeholder="Search products" />
+            <label>Keyword</label>
+            <input type="search" placeholder="Search catalog" />
         </div>
         <div class="filter-group">
             <label>Category</label>
@@ -21,8 +21,8 @@
             </select>
         </div>
         <div class="filter-group">
-            <label>Price range</label>
-            <input type="range" min="0" max="1000" />
+            <label>OEM reference</label>
+            <input type="text" placeholder="e.g. OEM 4712-A" />
         </div>
     </aside>
     <div class="catalog-results">
@@ -32,8 +32,8 @@
                 <div class="placeholder-image"></div>
                 <div class="catalog-card-content">
                     <h3>Product title</h3>
+                    <p class="catalog-meta">OEM 4002-XZ · Part AX-150</p>
                     <p>Short description about the product to show how copy will wrap across the layout.</p>
-                    <span class="price">$00.00</span>
                 </div>
             </article>
             {% endfor %}

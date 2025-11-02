@@ -15,21 +15,13 @@ router = APIRouter(tags=["Site"])
 def home(request: Request):
     return templates.TemplateResponse("site/home.html", {"request": request, "page": "home"})
 
-
 @router.get("/about", response_class=HTMLResponse)
 def about(request: Request):
     return templates.TemplateResponse("site/about.html", {"request": request, "page": "about"})
 
-
-@router.get("/products", response_class=HTMLResponse)
-def products(request: Request):
-    return templates.TemplateResponse("site/products.html", {"request": request, "page": "products"})
-
-
 @router.get("/catalog", response_class=HTMLResponse)
 def catalog(request: Request):
     return templates.TemplateResponse("site/catalog.html", {"request": request, "page": "catalog"})
-
 
 @router.get("/contact", response_class=HTMLResponse)
 def contact(request: Request):
