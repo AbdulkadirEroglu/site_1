@@ -2,16 +2,19 @@
 
 {% block layout %}
 <section class="auth-container">
-    <form class="auth-card">
+    <form class="auth-card" method="post" action="/admin/login">
         <h1>Admin login</h1>
         <p class="subtitle">Access the NovaCommerce control center.</p>
+        {% if form_error %}
+        <div class="form-error" role="alert">{{ form_error }}</div>
+        {% endif %}
         <label>
-            Email
-            <input type="email" placeholder="admin@example.com" />
+            User Name
+            <input name="username" type="text" placeholder="User123" required />
         </label>
         <label>
             Password
-            <input type="password" placeholder="Enter password" />
+            <input name="password" type="password" placeholder="Enter password" required />
         </label>
         <button type="submit" class="btn primary">Sign in</button>
         <p class="support">Forgot your password? <a href="#">Reset it here</a>.</p>

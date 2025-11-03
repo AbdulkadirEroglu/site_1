@@ -33,3 +33,13 @@ class Product(Base, TimestampMixin):
     is_active = Column(Boolean, default=True, nullable=False)
 
     category = relationship("Category", back_populates="products")
+
+
+class AdminUser(Base, TimestampMixin):
+    __tablename__ = "admin_users"
+
+    id = Column(Integer, primary_key=True, index=True)
+    user_name = Column(String(255), nullable=False, unique=True)
+    password_hash = Column(String(255), nullable=False)
+    full_name = Column(String(160), nullable=True)
+    is_active = Column(Boolean, default=True, nullable=False)

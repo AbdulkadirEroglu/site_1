@@ -66,6 +66,15 @@ body.admin-body {
     width: min(420px, 100%);
 }
 
+.form-error {
+    background: rgba(239, 68, 68, 0.18);
+    border: 1px solid rgba(248, 113, 113, 0.45);
+    color: #fecaca;
+    border-radius: 14px;
+    padding: 0.85rem 1rem;
+    font-size: 0.95rem;
+}
+
 .auth-card h1 {
     margin: 0;
 }
@@ -113,6 +122,26 @@ body.admin-body {
     padding: 2rem 1.5rem;
     display: grid;
     align-content: space-between;
+}
+
+.admin-meta {
+    margin-top: 1.75rem;
+    display: grid;
+    gap: 0.15rem;
+}
+
+.admin-name {
+    font-weight: 600;
+    color: var(--text);
+}
+
+.admin-Uname {
+    color: var(--muted);
+    font-size: 0.85rem;
+}
+
+.admin-sidebar form {
+    margin-top: 2rem;
 }
 
 .admin-sidebar .logo {

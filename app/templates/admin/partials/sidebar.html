@@ -1,9 +1,17 @@
 <aside class="admin-sidebar">
     <div class="logo">NovaCommerce</div>
+    {% if admin %}
+    <div class="admin-meta">
+        <span class="admin-name">{{ admin.full_name or admin.email }}</span>
+        <span class="admin-Uname">{{ admin.user_name }}</span>
+    </div>
+    {% endif %}
     <nav>
         <a href="/admin/dashboard" class="nav-link {% if page == 'dashboard' %}is-active{% endif %}">Dashboard</a>
         <a href="/admin/products" class="nav-link {% if page == 'products' %}is-active{% endif %}">Products</a>
         <a href="/admin/categories" class="nav-link {% if page == 'categories' %}is-active{% endif %}">Categories</a>
     </nav>
-    <button class="btn ghost">Sign out</button>
+    <form method="post" action="/admin/logout">
+        <button class="btn ghost" type="submit">Sign out</button>
+    </form>
 </aside>
