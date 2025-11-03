@@ -1,0 +1,42 @@
+{% extends "admin/base.html" %}
+
+{% block layout %}
+<div class="admin-shell">
+    {% include "admin/partials/sidebar.html" %}
+    <main class="admin-content">
+        <header class="admin-header">
+            <h1>Add category</h1>
+            <a class="btn ghost" href="/admin/categories">Back to list</a>
+        </header>
+        <section class="panel">
+            <header>
+                <div>
+                    <h2>Category metadata</h2>
+                    <p class="panel-subtitle">Define the label customers will see and the slug used in URLs.</p>
+                </div>
+            </header>
+            <form class="admin-form" method="post" action="/admin/categories/new">
+                {% if form_error %}
+                <div class="form-error" role="alert">{{ form_error }}</div>
+                {% endif %}
+                <label>
+                    Name
+                    <input name="name" type="text" required value="{{ form_data.name }}" />
+                </label>
+                <label>
+                    Slug <span class="field-note">(optional)</span>
+                    <input name="slug" type="text" placeholder="auto-generated-when-empty" value="{{ form_data.slug }}" />
+                </label>
+                <label>
+                    Description <span class="field-note">(optional)</span>
+                    <textarea name="description" rows="4" placeholder="Internal description or merchandising notes.">{{ form_data.description }}</textarea>
+                </label>
+                <div class="form-actions">
+                    <button class="btn ghost" type="reset">Reset</button>
+                    <button class="btn primary" type="submit">Create category</button>
+                </div>
+            </form>
+        </section>
+    </main>
+</div>
+{% endblock %}

@@ -6,35 +6,45 @@
     <main class="admin-content">
         <header class="admin-header">
             <h1>Products</h1>
-            <button class="btn primary">Add product</button>
+            <a class="btn primary" href="/admin/products/new">Add product</a>
         </header>
         <section class="panel">
             <header>
                 <h2>Product catalog</h2>
-                <input type="search" placeholder="Search products" />
+                <input type="search" placeholder="Search products" disabled />
             </header>
+            {% if products %}
             <table class="data-table">
                 <thead>
                     <tr>
                         <th>Name</th>
                         <th>SKU</th>
                         <th>OEM Reference</th>
+                        <th>Category</th>
                         <th>Status</th>
-                        <th></th>
                     </tr>
                 </thead>
                 <tbody>
-                    {% for _ in range(5) %}
+                    {% for product in products %}
                     <tr>
-                        <td>Sample product</td>
-                        <td>SKU-0001</td>
-                        <td>OEM 4712-A</td>
-                        <td><span class="status-pill success">Active</span></td>
-                        <td><a href="#">Edit</a></td>
+                        <td>{{ product.name }}</td>
+                        <td>{{ product.sku }}</td>
+                        <td>{{ product.oem_number }}</td>
+                        <td>{{ product.category or "—" }}</td>
+                        <td>
+                            {% if product.is_active %}
+                            <span class="status-pill success">Active</span>
+                            {% else %}
+                            <span class="status-pill muted">Inactive</span>
+                            {% endif %}
+                        </td>
                     </tr>
                     {% endfor %}
                 </tbody>
             </table>
+            {% else %}
+            <p class="empty-state">No products yet. Start by adding your first product.</p>
+            {% endif %}
         </section>
     </main>
 </div>

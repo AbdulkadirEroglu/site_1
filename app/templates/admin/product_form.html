@@ -1,0 +1,59 @@
+{% extends "admin/base.html" %}
+
+{% block layout %}
+<div class="admin-shell">
+    {% include "admin/partials/sidebar.html" %}
+    <main class="admin-content">
+        <header class="admin-header">
+            <h1>Add product</h1>
+            <a class="btn ghost" href="/admin/products">Back to list</a>
+        </header>
+        <section class="panel">
+            <header>
+                <div>
+                    <h2>Product details</h2>
+                    <p class="panel-subtitle">Provide the required identifiers and optional metadata.</p>
+                </div>
+            </header>
+            <form class="admin-form" method="post" action="/admin/products/new">
+                {% if form_error %}
+                <div class="form-error" role="alert">{{ form_error }}</div>
+                {% endif %}
+                <label>
+                    Name
+                    <input name="name" type="text" required value="{{ form_data.name }}" />
+                </label>
+                <label>
+                    SKU
+                    <input name="sku" type="text" required value="{{ form_data.sku }}" />
+                </label>
+                <label>
+                    OEM number
+                    <input name="oem_number" type="text" required value="{{ form_data.oem_number }}" />
+                </label>
+                <label>
+                    Summary
+                    <textarea name="summary" rows="4" placeholder="Optional description for internal context.">{{ form_data.summary }}</textarea>
+                </label>
+                <label>
+                    Category
+                    <select name="category_id">
+                        <option value="">Unassigned</option>
+                        {% for category in categories %}
+                        <option value="{{ category.id }}" {% if form_data.category_id == category.id_str %}selected{% endif %}>{{ category.name }}</option>
+                        {% endfor %}
+                    </select>
+                </label>
+                <label>
+                    Image URLs
+                    <textarea name="image_entries" rows="5" placeholder="One URL per line. Optional alt text after a pipe: https://example.com/image.jpg | Alt text">{{ form_data.image_entries }}</textarea>
+                </label>
+                <div class="form-actions">
+                    <button class="btn ghost" type="reset">Reset</button>
+                    <button class="btn primary" type="submit">Create product</button>
+                </div>
+            </form>
+        </section>
+    </main>
+</div>
+{% endblock %}

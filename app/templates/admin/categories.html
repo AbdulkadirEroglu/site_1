@@ -6,33 +6,43 @@
     <main class="admin-content">
         <header class="admin-header">
             <h1>Categories</h1>
-            <button class="btn primary">Add category</button>
+            <a class="btn primary" href="/admin/categories/new">Add category</a>
         </header>
         <section class="panel">
             <header>
                 <h2>Category library</h2>
-                <input type="search" placeholder="Search categories" />
+                <input type="search" placeholder="Search categories" disabled />
             </header>
+            {% if categories %}
             <table class="data-table">
                 <thead>
                     <tr>
                         <th>Name</th>
+                        <th>Slug</th>
                         <th>Products</th>
                         <th>Status</th>
-                        <th></th>
                     </tr>
                 </thead>
                 <tbody>
-                    {% for _ in range(4) %}
+                    {% for category in categories %}
                     <tr>
-                        <td>Accessories</td>
-                        <td>32</td>
-                        <td><span class="status-pill success">Active</span></td>
-                        <td><a href="#">Edit</a></td>
+                        <td>{{ category.name }}</td>
+                        <td>{{ category.slug }}</td>
+                        <td>{{ category.product_count }}</td>
+                        <td>
+                            {% if category.is_active %}
+                            <span class="status-pill success">Active</span>
+                            {% else %}
+                            <span class="status-pill muted">Inactive</span>
+                            {% endif %}
+                        </td>
                     </tr>
                     {% endfor %}
                 </tbody>
             </table>
+            {% else %}
+            <p class="empty-state">No categories yet. Create one to organize products.</p>
+            {% endif %}
         </section>
     </main>
 </div>
