@@ -20,7 +20,19 @@ Create a `.env` file to override configuration as needed:
 
 ```
 DATABASE_URL=postgresql+psycopg://catalog_user:catalog_pass@localhost:5432/catalog
+SECRET_KEY=generate-a-long-random-string-here
+SESSION_COOKIE_NAME=admin_session
 ```
+
+### Bootstrapping the database
+
+Once your environment variables are in place and the database server is reachable, run the bootstrap script to create tables and seed the initial admin account:
+
+```bash
+python scripts/bootstrap.py --email admin@example.com --full-name "Site Admin"
+```
+
+You can pass `--password` on the command line or leave it out to be prompted securely. Re-run the script later with the same email to update the admin profile or rotate the password. Add `--skip-tables` if the schema already exists.
 
 ### Running the application
 
