@@ -45,14 +45,15 @@ def login_submit(
 ):
     context = {"request": request, "page": "login", "form_error": None}
 
+    normalized_username = username.strip()
     stmt = select(AdminUser).where(
-        AdminUser.user_name == username,
+        AdminUser.user_name == normalized_username,
         AdminUser.is_active.is_(True),
     )
     admin = db.execute(stmt).scalar_one_or_none()
 
     if not admin or not verify_password(password, admin.password_hash):
-        context["form_error"] = "Invalid user name or password."
+        context["form_error"] = "Invalid username or password."
         return templates.TemplateResponse("admin/login.html", context, status_code=status.HTTP_400_BAD_REQUEST)
 
     request.session["admin_user_id"] = admin.id

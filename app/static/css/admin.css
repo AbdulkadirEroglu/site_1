@@ -135,7 +135,7 @@ body.admin-body {
     color: var(--text);
 }
 
-.admin-Uname {
+.admin-username {
     color: var(--muted);
     font-size: 0.85rem;
 }

@@ -2,8 +2,8 @@
     <div class="logo">NovaCommerce</div>
     {% if admin %}
     <div class="admin-meta">
-        <span class="admin-name">{{ admin.full_name or admin.email }}</span>
-        <span class="admin-Uname">{{ admin.user_name }}</span>
+        <span class="admin-name">{{ admin.full_name or admin.user_name }}</span>
+        <span class="admin-username">{{ admin.user_name }}</span>
     </div>
     {% endif %}
     <nav>
