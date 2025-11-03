@@ -3,7 +3,7 @@
 {% block content %}
 <section class="page-header">
     <h1>Product Catalog</h1>
-    <p>Browse a structured layout ready to connect with live product data and filters.</p>
+    <p>Browse our live inventory of OEM-certified spare parts sourced from trusted manufacturers.</p>
 </section>
 <section class="catalog-layout">
     <aside class="catalog-sidebar">
@@ -15,9 +15,10 @@
         <div class="filter-group">
             <label>Category</label>
             <select>
-                <option>All categories</option>
-                <option>Accessories</option>
-                <option>Electronics</option>
+                <option value="">All categories</option>
+                {% for category in categories %}
+                <option value="{{ category.slug }}">{{ category.name }}</option>
+                {% endfor %}
             </select>
         </div>
         <div class="filter-group">
@@ -27,15 +28,35 @@
     </aside>
     <div class="catalog-results">
         <div class="catalog-grid">
-            {% for _ in range(6) %}
+            {% for product in products %}
             <article class="catalog-card">
+                {% if product.primary_image %}
+                <figure class="catalog-image">
+                    <img src="{{ product.primary_image.url }}" alt="{{ product.primary_image.alt }}" loading="lazy" />
+                </figure>
+                {% else %}
                 <div class="placeholder-image"></div>
+                {% endif %}
                 <div class="catalog-card-content">
-                    <h3>Product title</h3>
-                    <p class="catalog-meta">OEM 4002-XZ · Part AX-150</p>
-                    <p>Short description about the product to show how copy will wrap across the layout.</p>
+                    <h3>{{ product.name }}</h3>
+                    <p class="catalog-meta">OEM {{ product.oem_number }} · Part {{ product.sku }}</p>
+                    {% if product.category %}
+                    <p class="catalog-meta">Category · {{ product.category }}</p>
+                    {% endif %}
+                    <p>{{ product.summary or "Detailed description will be provided shortly." }}</p>
+                    {% if product.images|length > 1 %}
+                    <ul class="catalog-thumbs" aria-label="Additional images">
+                        {% for image in product.images[1:] %}
+                        <li>
+                            <img src="{{ image.url }}" alt="{{ image.alt }}" loading="lazy" />
+                        </li>
+                        {% endfor %}
+                    </ul>
+                    {% endif %}
                 </div>
             </article>
+            {% else %}
+            <p class="empty-state">No products found yet. Use the admin dashboard to add the first items.</p>
             {% endfor %}
         </div>
     </div>

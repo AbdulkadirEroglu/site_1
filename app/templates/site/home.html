@@ -41,21 +41,51 @@
         </div>
     </div>
     <div class="slider-window">
+        {% if recent_products %}
+            {% for product in recent_products %}
+            <article class="product-slide {% if loop.first %}is-active{% endif %}" data-slide>
+                <h3>{{ product.name }}</h3>
+                <p class="slide-meta">OEM {{ product.oem_number }} · Part {{ product.sku }}</p>
+                <p class="slide-description">{{ product.summary or "No description available." }}</p>
+            </article>
+            {% endfor %}
+        {% else %}
         <article class="product-slide is-active" data-slide>
-            <h3>Hydraulic Pump Assembly</h3>
-            <p class="slide-meta">OEM 4712-A · Part HP-827</p>
-            <p class="slide-description">High-flow hydraulic pump engineered for tractors between 150-200 HP with reinforced seals.</p>
+            <h3>Catalog is warming up</h3>
+            <p class="slide-meta">No live products yet</p>
+            <p class="slide-description">Add products in the admin area to see them featured here.</p>
         </article>
-        <article class="product-slide" data-slide>
-            <h3>Fuel Injector Valve</h3>
-            <p class="slide-meta">OEM 7720-C · Part FJ-442</p>
-            <p class="slide-description">Precision valve supporting clean combustion and improved fuel efficiency across Tier 4 engines.</p>
+        {% endif %}
+    </div>
+</section>
+
+<section class="featured-products">
+    <header class="featured-header">
+        <div>
+            <p class="eyebrow">Explore the catalog</p>
+            <h2>Popular spare parts</h2>
+        </div>
+        <a class="btn secondary" href="/catalog">View full catalog</a>
+    </header>
+    <div class="featured-grid">
+        {% for product in featured_products %}
+        <article class="featured-card">
+            {% if product.primary_image %}
+            <figure class="featured-image">
+                <img src="{{ product.primary_image.url }}" alt="{{ product.primary_image.alt }}" loading="lazy" />
+            </figure>
+            {% else %}
+            <div class="placeholder-image"></div>
+            {% endif %}
+            <div class="featured-content">
+                <h3>{{ product.name }}</h3>
+                <p class="catalog-meta">OEM {{ product.oem_number }} · Part {{ product.sku }}</p>
+                <p>{{ product.summary or "Details coming soon." }}</p>
+            </div>
         </article>
-        <article class="product-slide" data-slide>
-            <h3>Cabin Air Filtration Kit</h3>
-            <p class="slide-meta">OEM 3301-K · Part AF-112</p>
-            <p class="slide-description">Multi-layer filtration kit blocking dust, pollen, and micro contaminants for operator comfort.</p>
-        </article>
+        {% else %}
+        <p class="empty-state">Add products to the catalog to showcase them on the homepage.</p>
+        {% endfor %}
     </div>
 </section>
 

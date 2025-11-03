@@ -1,4 +1,4 @@
-from sqlalchemy import Boolean, Column, DateTime, ForeignKey, Integer, Numeric, String, Text, func
+from sqlalchemy import Boolean, Column, DateTime, ForeignKey, Integer, String, Text, func
 from sqlalchemy.orm import declarative_base, relationship
 
 Base = declarative_base()
@@ -33,6 +33,7 @@ class Product(Base, TimestampMixin):
     is_active = Column(Boolean, default=True, nullable=False)
 
     category = relationship("Category", back_populates="products")
+    images = relationship("ProductImage", back_populates="product", cascade="all, delete-orphan")
 
 
 class AdminUser(Base, TimestampMixin):
@@ -43,3 +44,15 @@ class AdminUser(Base, TimestampMixin):
     password_hash = Column(String(255), nullable=False)
     full_name = Column(String(160), nullable=True)
     is_active = Column(Boolean, default=True, nullable=False)
+
+
+class ProductImage(Base, TimestampMixin):
+    __tablename__ = "product_images"
+
+    id = Column(Integer, primary_key=True, index=True)
+    product_id = Column(Integer, ForeignKey("products.id", ondelete="CASCADE"), nullable=False)
+    image_url = Column(String(512), nullable=False)
+    alt_text = Column(String(255), nullable=True)
+    sort_order = Column(Integer, nullable=False, default=0)
+
+    product = relationship("Product", back_populates="images")
