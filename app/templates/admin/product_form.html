@@ -5,7 +5,7 @@
     {% include "admin/partials/sidebar.html" %}
     <main class="admin-content">
         <header class="admin-header">
-            <h1>Add product</h1>
+            <h1>{{ form_title }}</h1>
             <a class="btn ghost" href="/admin/products">Back to list</a>
         </header>
         <section class="panel">
@@ -15,7 +15,7 @@
                     <p class="panel-subtitle">Provide the required identifiers and optional metadata.</p>
                 </div>
             </header>
-            <form class="admin-form" method="post" action="/admin/products/new">
+            <form class="admin-form" method="post" action="{{ form_action }}">
                 {% if form_error %}
                 <div class="form-error" role="alert">{{ form_error }}</div>
                 {% endif %}
@@ -40,7 +40,7 @@
                     <select name="category_id">
                         <option value="">Unassigned</option>
                         {% for category in categories %}
-                        <option value="{{ category.id }}" {% if form_data.category_id == category.id_str %}selected{% endif %}>{{ category.name }}</option>
+                        <option value="{{ category.id_str }}" {% if form_data.category_id == category.id_str %}selected{% endif %}>{{ category.label }}</option>
                         {% endfor %}
                     </select>
                 </label>
@@ -50,7 +50,7 @@
                 </label>
                 <div class="form-actions">
                     <button class="btn ghost" type="reset">Reset</button>
-                    <button class="btn primary" type="submit">Create product</button>
+                    <button class="btn primary" type="submit">{{ submit_label }}</button>
                 </div>
             </form>
         </section>

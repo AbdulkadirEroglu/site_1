@@ -5,7 +5,7 @@
     {% include "admin/partials/sidebar.html" %}
     <main class="admin-content">
         <header class="admin-header">
-            <h1>Add category</h1>
+            <h1>{{ form_title }}</h1>
             <a class="btn ghost" href="/admin/categories">Back to list</a>
         </header>
         <section class="panel">
@@ -15,13 +15,38 @@
                     <p class="panel-subtitle">Define the label customers will see and the slug used in URLs.</p>
                 </div>
             </header>
-            <form class="admin-form" method="post" action="/admin/categories/new">
+            <form class="admin-form" method="post" action="{{ form_action }}">
                 {% if form_error %}
                 <div class="form-error" role="alert">{{ form_error }}</div>
                 {% endif %}
                 <label>
                     Name
                     <input name="name" type="text" required value="{{ form_data.name }}" />
+                </label>
+                {% if form_mode == "edit" %}
+                <label>
+                    Parent category
+                    <input type="hidden" name="parent_id" value="{{ form_data.parent_id }}" />
+                    <input type="text" value="{{ parent_display }}" readonly />
+                </label>
+                {% else %}
+                <label>
+                    Parent category
+                    <select name="parent_id">
+                        <option value="">No parent (top-level)</option>
+                        {% for option in parent_options %}
+                        <option value="{{ option.id_str }}" {% if form_data.parent_id == option.id_str %}selected{% endif %}>{{ option.label }}</option>
+                        {% endfor %}
+                    </select>
+                </label>
+                {% endif %}
+                <label>
+                    Level
+                    <input name="level" type="number" value="{{ form_data.level }}" readonly />
+                </label>
+                <label>
+                    Order
+                    <input name="order" type="number" min="0" value="{{ form_data.order }}" />
                 </label>
                 <label>
                     Slug <span class="field-note">(optional)</span>
@@ -33,7 +58,7 @@
                 </label>
                 <div class="form-actions">
                     <button class="btn ghost" type="reset">Reset</button>
-                    <button class="btn primary" type="submit">Create category</button>
+                    <button class="btn primary" type="submit">{{ submit_label }}</button>
                 </div>
             </form>
         </section>

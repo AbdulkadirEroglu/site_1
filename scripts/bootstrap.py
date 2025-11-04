@@ -100,7 +100,7 @@ def main() -> int:
         return 1
 
     if created:
-        print(f"Admin user created with email: {admin.user_name}")
+        print(f"Admin user created with user name: {admin.user_name}")
     else:
         if password:
             print(f"Admin user {admin.user_name} updated (password refreshed).")

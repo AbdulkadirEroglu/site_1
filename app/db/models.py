@@ -1,5 +1,5 @@
 from sqlalchemy import Boolean, Column, DateTime, ForeignKey, Integer, String, Text, func
-from sqlalchemy.orm import declarative_base, relationship
+from sqlalchemy.orm import backref, declarative_base, relationship
 
 Base = declarative_base()
 
@@ -19,6 +19,13 @@ class Category(Base, TimestampMixin):
     is_active = Column(Boolean, default=True, nullable=False)
     level = Column(Integer, nullable=False, default=0)
     order = Column(Integer, nullable=False, default=0)
+    parent_id = Column(Integer, ForeignKey("categories.id", ondelete="SET NULL"), nullable=True)
+    parent = relationship(
+        "Category",
+        remote_side=[id],
+        backref=backref("children", cascade="all, delete-orphan"),
+        single_parent=True,
+    )
     products = relationship("Product", back_populates="category", cascade="all, delete-orphan")
 
 class Product(Base, TimestampMixin):
