@@ -11,7 +11,13 @@
         <section class="panel">
             <header>
                 <h2>Product catalog</h2>
-                <input type="search" placeholder="Search products" disabled />
+                <form class="search-form" method="get">
+                    <label class="sr-only" for="product-search">Search products</label>
+                    <input id="product-search" type="search" name="q" placeholder="Search products" value="{{ search_term }}" />
+                    {% if search_term %}
+                    <a class="btn ghost small" href="/admin/products">Clear</a>
+                    {% endif %}
+                </form>
             </header>
             {% if products %}
             <table class="data-table">
@@ -53,7 +59,13 @@
                 </tbody>
             </table>
             {% else %}
-            <p class="empty-state">No products yet. Start by adding your first product.</p>
+            <p class="empty-state">
+                {% if search_term %}
+                No products found for "{{ search_term }}".
+                {% else %}
+                No products yet. Start by adding your first product.
+                {% endif %}
+            </p>
             {% endif %}
         </section>
     </main>

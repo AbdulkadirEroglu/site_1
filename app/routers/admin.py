@@ -1,11 +1,12 @@
 import logging
+from datetime import datetime
 import re
 from collections import defaultdict
 from pathlib import Path
 from typing import Any, Callable, Optional, Union
 from uuid import uuid4
 
-from fastapi import APIRouter, Depends, File, Form, Request, UploadFile, status
+from fastapi import APIRouter, Depends, File, Form, Query, Request, UploadFile, status
 from fastapi.responses import HTMLResponse, RedirectResponse
 from fastapi.templating import Jinja2Templates
 from sqlalchemy import func, or_, select
@@ -247,16 +248,26 @@ def _render_categories_page(
     admin: AdminUser,
     db: Session,
     *,
+    search_term: str = "",
     message: Optional[str] = None,
     message_kind: str = "info",
 ) -> HTMLResponse:
     categories = _category_tree_with_stats(db)
+    trimmed = search_term.strip()
+    if trimmed:
+        lowered = trimmed.lower()
+        categories = [
+            category
+            for category in categories
+            if lowered in category["name"].lower() or lowered in category["slug"].lower()
+        ]
     context = _build_context(
         request,
         {
             "page": "categories",
             "admin": admin,
             "categories": categories,
+            "search_term": trimmed,
             "page_message": message,
             "page_message_kind": message_kind,
         },
@@ -357,14 +368,55 @@ def dashboard(request: Request, db: Session = Depends(get_db)):
     if not admin:
         return RedirectResponse(url="/admin/login", status_code=status.HTTP_303_SEE_OTHER)
 
+    live_products = db.scalar(select(func.count(Product.id)).where(Product.is_active.is_(True))) or 0
+    inactive_products = db.scalar(select(func.count(Product.id)).where(Product.is_active.is_(False))) or 0
+    category_count = db.scalar(select(func.count(Category.id))) or 0
+
+    recent_rows = db.execute(
+        select(
+            Product.name,
+            Product.updated_at,
+            Product.is_active,
+            Category.name.label("category_name"),
+        )
+        .outerjoin(Category, Product.category_id == Category.id)
+        .order_by(Product.updated_at.desc())
+        .limit(5)
+    ).all()
+    activities = [
+        {
+            "name": row.name,
+            "category": row.category_name,
+            "updated_at": row.updated_at or datetime.utcnow(),
+            "status": "Active" if row.is_active else "Inactive",
+        }
+        for row in recent_rows
+    ]
+
     return templates.TemplateResponse(
         "admin/dashboard.html",
-        _build_context(request, {"page": "dashboard", "admin": admin}),
+        _build_context(
+            request,
+            {
+                "page": "dashboard",
+                "admin": admin,
+                "stats": {
+                    "live_products": live_products,
+                    "inactive_products": inactive_products,
+                    "categories": category_count,
+                },
+                "activities": activities,
+            },
+        ),
     )
 
 
 @router.get("/products", response_class=HTMLResponse)
-def manage_products(request: Request, db: Session = Depends(get_db)):
+def manage_products(
+    request: Request,
+    q: str = Query("", alias="q"),
+    db: Session = Depends(get_db),
+):
     admin = _ensure_admin(request, db)
     if not admin:
         return RedirectResponse(url="/admin/login", status_code=status.HTTP_303_SEE_OTHER)
@@ -391,6 +443,17 @@ def manage_products(request: Request, db: Session = Depends(get_db)):
         )
         .order_by(Product.created_at.desc())
     )
+    search_term = q.strip()
+    if search_term:
+        pattern = f"%{search_term}%"
+        products_query = products_query.where(
+            or_(
+                Product.name.ilike(pattern),
+                Product.sku.ilike(pattern),
+                Product.oem_number.ilike(pattern),
+            )
+        )
+
     rows = db.execute(products_query).all()
     products = [
         {
@@ -413,6 +476,7 @@ def manage_products(request: Request, db: Session = Depends(get_db)):
                 "page": "products",
                 "admin": admin,
                 "products": products,
+                "search_term": search_term,
             },
         ),
     )
@@ -438,6 +502,7 @@ def new_product(request: Request, db: Session = Depends(get_db)):
                 "oem_number": "",
                 "summary": "",
                 "category_id": "",
+                "is_active": True,
             },
             "categories": category_options,
             "existing_images": [],
@@ -460,6 +525,7 @@ async def create_product(
     category_id: str = Form(""),
     new_images: Union[UploadFile, list[UploadFile], None] = File(default=None),
     csrf_token: str = Form(...),
+    is_active: bool = Form(False),
     db: Session = Depends(get_db),
 ):
     admin = _ensure_admin(request, db)
@@ -480,6 +546,7 @@ async def create_product(
         "oem_number": oem_number,
         "summary": summary,
         "category_id": category_value or "",
+        "is_active": is_active,
     }
 
     def _render_error(message: str):
@@ -525,7 +592,7 @@ async def create_product(
         sku=sku,
         oem_number=oem_number,
         summary=summary,
-        is_active=True,
+        is_active=is_active,
     )
     if category_obj:
         product.category = category_obj
@@ -583,6 +650,7 @@ def edit_product(
         "oem_number": product.oem_number,
         "summary": product.summary or "",
         "category_id": str(product.category_id) if product.category_id else "",
+        "is_active": product.is_active,
     }
 
     context = _build_context(
@@ -615,6 +683,7 @@ async def update_product(
     category_id: str = Form(""),
     new_images: Union[UploadFile, list[UploadFile], None] = File(default=None),
     csrf_token: str = Form(...),
+    is_active: bool = Form(False),
     db: Session = Depends(get_db),
 ):
     admin = _ensure_admin(request, db)
@@ -641,6 +710,7 @@ async def update_product(
         "oem_number": oem_number,
         "summary": summary,
         "category_id": category_value or "",
+        "is_active": is_active,
     }
 
     form_payload = await request.form()
@@ -750,6 +820,7 @@ async def update_product(
     product.oem_number = oem_number
     product.summary = summary
     product.category = category_obj
+    product.is_active = is_active
 
     db.add(product)
     db.commit()
@@ -762,12 +833,16 @@ async def update_product(
 
 
 @router.get("/categories", response_class=HTMLResponse)
-def manage_categories(request: Request, db: Session = Depends(get_db)):
+def manage_categories(
+    request: Request,
+    q: str = Query("", alias="q"),
+    db: Session = Depends(get_db),
+):
     admin = _ensure_admin(request, db)
     if not admin:
         return RedirectResponse(url="/admin/login", status_code=status.HTTP_303_SEE_OTHER)
 
-    return _render_categories_page(request, admin, db)
+    return _render_categories_page(request, admin, db, search_term=q)
 
 
 @router.get("/categories/new", response_class=HTMLResponse)
@@ -782,7 +857,7 @@ def new_category(request: Request, db: Session = Depends(get_db)):
             "page": "categories",
             "admin": admin,
             "form_error": None,
-            "form_data": {"name": "", "slug": "", "description": "", "level": 0, "order": "", "parent_id": ""},
+            "form_data": {"name": "", "slug": "", "description": "", "level": 0, "order": "", "parent_id": "", "is_active": True},
             "parent_options": _category_parent_options(db),
             "form_mode": "create",
             "form_action": "/admin/categories/new",
@@ -803,6 +878,7 @@ def create_category(
     order: str = Form(""),
     parent_id: str = Form(""),
     csrf_token: str = Form(...),
+    is_active: bool = Form(False),
     db: Session = Depends(get_db),
 ):
     admin = _ensure_admin(request, db)
@@ -824,6 +900,7 @@ def create_category(
         "order": order_raw,
         "parent_id": parent_raw,
         "level": "0",
+        "is_active": is_active,
     }
 
     def _render_error(message: str):
@@ -890,7 +967,7 @@ def create_category(
         name=name,
         slug=final_slug,
         description=description,
-        is_active=True,
+        is_active=is_active,
         order=order_value,
         level=effective_level,
         parent=parent_obj,
@@ -928,6 +1005,7 @@ def edit_category(
         "order": str(category.order),
         "parent_id": str(parent.id) if parent else "",
         "level": str(category.level),
+        "is_active": category.is_active,
     }
 
     context = _build_context(
@@ -959,6 +1037,7 @@ def update_category(
     order: str = Form(""),
     parent_id: str = Form(""),
     csrf_token: str = Form(...),
+    is_active: bool = Form(False),
     db: Session = Depends(get_db),
 ):
     admin = _ensure_admin(request, db)
@@ -984,6 +1063,7 @@ def update_category(
         "order": order_raw or str(category.order),
         "parent_id": str(parent.id) if parent else "",
         "level": str(category.level),
+        "is_active": is_active,
     }
 
     validate_csrf_token(request, csrf_token)
@@ -1032,6 +1112,7 @@ def update_category(
     category.slug = final_slug
     category.description = description
     category.order = order_value
+    category.is_active = is_active
 
     db.add(category)
     db.commit()

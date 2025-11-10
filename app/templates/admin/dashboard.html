@@ -6,32 +6,45 @@
     <main class="admin-content">
         <header class="admin-header">
             <h1>Dashboard</h1>
-            <button class="btn primary">New product</button>
+            <a class="btn primary" href="/admin/products/new">New product</a>
         </header>
         <section class="stats-grid">
             <article>
                 <span class="label">Live products</span>
-                <span class="metric">128</span>
+                <span class="metric">{{ stats.live_products }}</span>
             </article>
             <article>
                 <span class="label">Categories</span>
-                <span class="metric">12</span>
+                <span class="metric">{{ stats.categories }}</span>
             </article>
             <article>
-                <span class="label">Pending approvals</span>
-                <span class="metric">4</span>
+                <span class="label">Inactive products</span>
+                <span class="metric">{{ stats.inactive_products }}</span>
             </article>
         </section>
         <section class="panel">
             <header>
                 <h2>Latest updates</h2>
-                <a href="#">View all</a>
+                <a href="/admin/products">View all</a>
             </header>
+            {% if activities %}
             <ul class="activity-list">
-                <li><span class="dot"></span> Added “Aurora Wireless Headphones” to Electronics</li>
-                <li><span class="dot"></span> Updated technical sheet for “Luna Smart Lamp”</li>
-                <li><span class="dot"></span> Created new category “Wellness”</li>
+                {% for activity in activities %}
+                <li>
+                    <span class="dot"></span>
+                    <div>
+                        <strong>{{ activity.name }}</strong>
+                        {% if activity.category %}
+                        <span class="label"> · {{ activity.category }}</span>
+                        {% endif %}
+                        <div class="activity-meta">{{ activity.status }} · {{ activity.updated_at.strftime("%b %d, %Y %H:%M") }}</div>
+                    </div>
+                </li>
+                {% endfor %}
             </ul>
+            {% else %}
+            <p class="empty-state">No recent product updates yet.</p>
+            {% endif %}
         </section>
     </main>
 </div>

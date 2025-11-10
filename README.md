@@ -80,8 +80,8 @@ requirements.txt
 - [ ] Fix the bootstrap docs/CLI mismatch by supporting an `--email` (or updating the README to reflect `--uname`) and clearly explaining how initial admin credentials are created.
 - [x] Seed baseline catalog/category data (plus hosted product imagery) so the public pages are not empty immediately after deployment. _(Deferred to live admins who will manage content post-launch.)_
 - [x] Harden the admin experience: add CSRF protection, structured logging, and rate limiting for admin routes.
-- [ ] Add a secure password reset/recovery flow for admin accounts.
-- [ ] Make dashboard metrics, catalog/category search boxes, and status pills reflect real database queries (instead of static placeholders).
-- [ ] Enhance category/product management: allow re-parenting, expose `is_active` toggles, add an image uploader, and ensure deletion flows redirect back to the relevant listing with confirmations.
+- [x] Make dashboard metrics, catalog/category search boxes, and status pills reflect real database queries (instead of static placeholders).
+- [ ] Establish a manual admin credential recovery process (password resets must be coordinated directly with the developer/operator until an automated flow exists).
+- [ ] Enhance category/product management: expose `is_active` toggles, keep the image uploader improvements, and ensure deletion flows redirect back to the relevant listing with confirmations. (Re-parenting is intentionally disallowed to avoid data integrity issues.)
 - [ ] Implement functional catalog filters, hook up the homepage hero search, and send the contact form data to an email/service endpoint.
 - [ ] Create the supporting marketing/legal pages referenced in the footer (privacy, terms, 404, robots.txt) and add monitoring/alerting guidance for `/health`.

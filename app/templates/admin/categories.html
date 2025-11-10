@@ -11,7 +11,13 @@
         <section class="panel">
             <header>
                 <h2>Category library</h2>
-                <input type="search" placeholder="Search categories" disabled />
+                <form class="search-form" method="get">
+                    <label class="sr-only" for="category-search">Search categories</label>
+                    <input id="category-search" type="search" name="q" placeholder="Search categories" value="{{ search_term }}" />
+                    {% if search_term %}
+                    <a class="btn ghost small" href="/admin/categories">Clear</a>
+                    {% endif %}
+                </form>
             </header>
             {% if page_message %}
             <div class="form-error" role="alert">{{ page_message }}</div>
@@ -57,7 +63,13 @@
                 </tbody>
             </table>
             {% else %}
-            <p class="empty-state">No categories yet. Create one to organize products.</p>
+            <p class="empty-state">
+                {% if search_term %}
+                No categories found for "{{ search_term }}".
+                {% else %}
+                No categories yet. Create one to organize products.
+                {% endif %}
+            </p>
             {% endif %}
         </section>
     </main>

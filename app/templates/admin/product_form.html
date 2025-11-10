@@ -36,6 +36,10 @@
                     Summary
                     <textarea name="summary" rows="4" placeholder="Optional description for internal context.">{{ form_data.summary }}</textarea>
                 </label>
+                <label class="checkbox-inline">
+                    <input type="checkbox" name="is_active" value="true" {% if form_data.is_active %}checked{% endif %} />
+                    <span>Visible on site</span>
+                </label>
                 <label>
                     Category
                     <select name="category_id">

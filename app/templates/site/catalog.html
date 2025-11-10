@@ -8,25 +8,34 @@
 <section class="catalog-layout">
     <aside class="catalog-sidebar">
         <h2>Filters</h2>
-        <div class="filter-group">
-            <label>Keyword</label>
-            <input type="search" placeholder="Search catalog" />
-        </div>
-        <div class="filter-group">
-            <label>Category</label>
-            <select>
-                <option value="">All categories</option>
-                {% for category in categories %}
-                <option value="{{ category.slug }}">{{ category.name }}</option>
-                {% endfor %}
-            </select>
-        </div>
-        <div class="filter-group">
-            <label>OEM reference</label>
-            <input type="text" placeholder="e.g. OEM 4712-A" />
-        </div>
+        <form class="catalog-filters" method="get">
+            <div class="filter-group">
+                <label for="filter-keyword">Keyword</label>
+                <input id="filter-keyword" name="q" type="search" placeholder="Search catalog" value="{{ filters.q }}" />
+            </div>
+            <div class="filter-group">
+                <label for="filter-category">Category</label>
+                <select id="filter-category" name="category">
+                    <option value="">All categories</option>
+                    {% for category in categories %}
+                    <option value="{{ category.slug }}" {% if filters.category == category.slug %}selected{% endif %}>{{ category.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="filter-group">
+                <label for="filter-oem">OEM reference</label>
+                <input id="filter-oem" name="oem" type="text" placeholder="e.g. OEM 4712-A" value="{{ filters.oem }}" />
+            </div>
+            <div class="filter-actions">
+                <button type="submit" class="btn secondary">Apply filters</button>
+                {% if filters.has_active %}
+                <a class="btn ghost" href="/catalog">Clear</a>
+                {% endif %}
+            </div>
+        </form>
     </aside>
     <div class="catalog-results">
+        {% if products %}
         <div class="catalog-grid">
             {% for product in products %}
             <article class="catalog-card">
@@ -55,10 +64,17 @@
                     {% endif %}
                 </div>
             </article>
-            {% else %}
-            <p class="empty-state">No products found yet. Use the admin dashboard to add the first items.</p>
             {% endfor %}
         </div>
+        {% else %}
+        <p class="empty-state">
+            {% if filters.has_active %}
+            No products matched your filters. Try adjusting the criteria.
+            {% else %}
+            No products found yet. Use the admin dashboard to add the first items.
+            {% endif %}
+        </p>
+        {% endif %}
     </div>
 </section>
 {% endblock %}

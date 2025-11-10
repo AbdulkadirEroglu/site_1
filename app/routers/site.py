@@ -1,9 +1,9 @@
 from datetime import datetime
 
-from fastapi import APIRouter, Depends, Request
+from fastapi import APIRouter, Depends, Query, Request
 from fastapi.responses import HTMLResponse
 from fastapi.templating import Jinja2Templates
-from sqlalchemy import select
+from sqlalchemy import or_, select
 from sqlalchemy.orm import Session
 
 from app.db.models import Category, Product
@@ -71,14 +71,42 @@ def about(request: Request):
 
 
 @router.get("/catalog", response_class=HTMLResponse)
-def catalog(request: Request, db: Session = Depends(get_db)):
+def catalog(
+    request: Request,
+    q: str = Query("", alias="q"),
+    category: str = Query("", alias="category"),
+    oem: str = Query("", alias="oem"),
+    db: Session = Depends(get_db),
+):
+    filters = {
+        "q": q.strip(),
+        "category": category.strip(),
+        "oem": oem.strip(),
+    }
     products_stmt = (
         select(Product)
+        .outerjoin(Category)
         .where(Product.is_active.is_(True))
-        .order_by(Product.created_at.desc())
     )
-    products = db.execute(products_stmt).scalars().all()
+    if filters["q"]:
+        pattern = f"%{filters['q']}%"
+        products_stmt = products_stmt.where(
+            or_(
+                Product.name.ilike(pattern),
+                Product.summary.ilike(pattern),
+                Product.sku.ilike(pattern),
+                Product.oem_number.ilike(pattern),
+            )
+        )
+    if filters["category"]:
+        products_stmt = products_stmt.where(Category.slug == filters["category"])
+    if filters["oem"]:
+        products_stmt = products_stmt.where(Product.oem_number.ilike(f"%{filters['oem']}%"))
+
+    products_stmt = products_stmt.order_by(Product.created_at.desc())
+    products = db.execute(products_stmt).scalars().unique().all()
     serialized_products = [_serialize_product(product) for product in products]
+    has_filters = any(filters.values())
 
     categories_stmt = (
         select(Category)
@@ -96,6 +124,7 @@ def catalog(request: Request, db: Session = Depends(get_db)):
         "page": "catalog",
         "products": serialized_products,
         "categories": serialized_categories,
+        "filters": {**filters, "has_active": has_filters},
     }
     return templates.TemplateResponse("site/catalog.html", context)
 
