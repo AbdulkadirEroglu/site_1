@@ -70,8 +70,8 @@ requirements.txt
 - Introduce automated tests and CI workflows
 
 ## Deployment readiness checklist
-- [ ] Replace the placeholder `SECRET_KEY`, database URL, and session cookie name in `app/core/config.py` with environment variables specific to each server, and lock down `SessionMiddleware` cookies (`secure`, `httponly`, `max_age`, `same_site`).
-- [ ] Decide on a single PostgreSQL driver (`psycopg` _or_ `psycopg2`), update `requirements.txt`, and verify dependency installation in the production environment.
+- [x] Replace the placeholder `SECRET_KEY`, database URL, and session cookie name in `app/core/config.py` with environment variables specific to each server, and lock down `SessionMiddleware` cookies (`secure`, `httponly`, `max_age`, `same_site`).
+- [x] Decide on a single PostgreSQL driver (`psycopg` _or_ `psycopg2`), update `requirements.txt`, and verify dependency installation in the production environment.
 - [ ] Document the production process manager (e.g., systemd, Supervisor, Docker) and how to run Uvicorn/Gunicorn when the site is deployed over FTP.
 - [ ] Introduce Alembic migrations instead of relying on `Base.metadata.create_all()` in `scripts/bootstrap.py`, so future schema changes do not require manual intervention.
 - [ ] Fix the bootstrap docs/CLI mismatch by supporting an `--email` (or updating the README to reflect `--uname`) and clearly explaining how initial admin credentials are created.

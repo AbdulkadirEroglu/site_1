@@ -1,8 +1,10 @@
 import re
 from collections import defaultdict
-from typing import Any, Callable, Optional
+from pathlib import Path
+from typing import Any, Callable, Optional, Union
+from uuid import uuid4
 
-from fastapi import APIRouter, Depends, Form, Request, status
+from fastapi import APIRouter, Depends, File, Form, Request, UploadFile, status
 from fastapi.responses import HTMLResponse, RedirectResponse
 from fastapi.templating import Jinja2Templates
 from sqlalchemy import func, or_, select
@@ -15,6 +17,10 @@ from app.db.session import get_db
 templates = Jinja2Templates(directory="app/templates")
 
 router = APIRouter(prefix="/admin", tags=["Admin"])
+
+UPLOAD_ROOT = Path("app/static/uploads/products")
+UPLOAD_ROOT.mkdir(parents=True, exist_ok=True)
+ALLOWED_IMAGE_EXTENSIONS = {".jpg", ".jpeg", ".png", ".gif", ".webp"}
 
 
 def _get_admin_from_session(request: Request, db: Session) -> Optional[AdminUser]:
@@ -40,18 +46,78 @@ def _slugify(value: str) -> str:
     return value.strip("-")
 
 
-def _parse_image_entries(raw_entries: str) -> list[tuple[str, Optional[str]]]:
-    entries: list[tuple[str, Optional[str]]] = []
-    for line in raw_entries.splitlines():
-        line = line.strip()
-        if not line:
+class ImageUploadError(Exception):
+    """Raised when an uploaded image cannot be processed."""
+
+
+async def _process_new_uploads(
+    files: Optional[list[UploadFile]],
+    *,
+    default_alt: str,
+    starting_order: int = 0,
+) -> list[ProductImage]:
+    saved_images: list[ProductImage] = []
+    if not files:
+        return saved_images
+
+    order = starting_order
+    for upload in files:
+        if not upload or not upload.filename:
             continue
-        if "|" in line:
-            url, alt = line.split("|", 1)
-            entries.append((url.strip(), alt.strip() or None))
-        else:
-            entries.append((line, None))
-    return entries
+
+        suffix = Path(upload.filename).suffix.lower()
+        if suffix not in ALLOWED_IMAGE_EXTENSIONS:
+            await upload.close()
+            raise ImageUploadError("Unsupported image type. Upload JPG, PNG, GIF, or WebP files.")
+
+        data = await upload.read()
+        await upload.close()
+        if not data:
+            continue
+
+        filename = f"{uuid4().hex}{suffix}"
+        destination = UPLOAD_ROOT / filename
+        destination.write_bytes(data)
+
+        saved_images.append(
+            ProductImage(
+                image_url=f"/static/uploads/products/{filename}",
+                alt_text=default_alt,
+                sort_order=order,
+            )
+        )
+        order += 1
+
+    return saved_images
+
+
+def _remove_image_file(image_url: Optional[str]) -> None:
+    if not image_url:
+        return
+    prefix = "/static/"
+    if image_url.startswith(prefix):
+        relative_path = image_url[len(prefix) :]
+    else:
+        relative_path = image_url.lstrip("/")
+
+    full_path = Path("app/static") / relative_path
+    try:
+        full_path.resolve().relative_to(Path("app/static").resolve())
+    except ValueError:
+        return
+
+    if full_path.exists():
+        full_path.unlink()
+
+
+def _coerce_uploads(
+    files: Union[UploadFile, list[UploadFile], None],
+) -> list[UploadFile]:
+    if not files:
+        return []
+    if isinstance(files, list):
+        return [file for file in files if file]
+    return [files]
 
 
 def _category_parent_options(
@@ -255,8 +321,18 @@ def manage_products(request: Request, db: Session = Depends(get_db)):
             Product.oem_number,
             Product.is_active,
             Category.name.label("category_name"),
+            func.count(ProductImage.id).label("image_count"),
         )
         .outerjoin(Category, Product.category_id == Category.id)
+        .outerjoin(ProductImage, ProductImage.product_id == Product.id)
+        .group_by(
+            Product.id,
+            Product.name,
+            Product.sku,
+            Product.oem_number,
+            Product.is_active,
+            Category.name,
+        )
         .order_by(Product.created_at.desc())
     )
     rows = db.execute(products_query).all()
@@ -268,6 +344,7 @@ def manage_products(request: Request, db: Session = Depends(get_db)):
             "oem_number": row.oem_number,
             "is_active": row.is_active,
             "category": row.category_name,
+            "image_count": row.image_count,
         }
         for row in rows
     ]
@@ -302,9 +379,9 @@ def new_product(request: Request, db: Session = Depends(get_db)):
             "oem_number": "",
             "summary": "",
             "category_id": "",
-            "image_entries": "",
         },
         "categories": category_options,
+        "existing_images": [],
         "form_mode": "create",
         "form_action": "/admin/products/new",
         "submit_label": "Create product",
@@ -314,14 +391,14 @@ def new_product(request: Request, db: Session = Depends(get_db)):
 
 
 @router.post("/products/new", response_class=HTMLResponse)
-def create_product(
+async def create_product(
     request: Request,
     name: str = Form(...),
     sku: str = Form(...),
     oem_number: str = Form(...),
     summary: str = Form(""),
     category_id: str = Form(""),
-    image_entries: str = Form(""),
+    new_images: Union[UploadFile, list[UploadFile], None] = File(default=None),
     db: Session = Depends(get_db),
 ):
     admin = _ensure_admin(request, db)
@@ -333,7 +410,6 @@ def create_product(
     oem_number = oem_number.strip()
     summary = summary.strip()
     category_value = category_id.strip() or None
-    image_entries_value = image_entries.strip()
 
     category_options = _category_parent_options(db, include_predicate=lambda cat: cat.is_active)
     form_data = {
@@ -342,7 +418,6 @@ def create_product(
         "oem_number": oem_number,
         "summary": summary,
         "category_id": category_value or "",
-        "image_entries": image_entries_value,
     }
 
     def _render_error(message: str):
@@ -353,6 +428,7 @@ def create_product(
             "form_error": message,
             "form_data": form_data,
             "categories": category_options,
+            "existing_images": [],
             "form_mode": "create",
             "form_action": "/admin/products/new",
             "submit_label": "Create product",
@@ -380,8 +456,6 @@ def create_product(
         if not category_obj:
             return _render_error("Selected category does not exist.")
 
-    image_pairs = _parse_image_entries(image_entries_value)
-
     product = Product(
         name=name,
         sku=sku,
@@ -392,16 +466,14 @@ def create_product(
     if category_obj:
         product.category = category_obj
 
-    for sort_order, (url, alt) in enumerate(image_pairs):
-        if not url:
-            continue
-        product.images.append(
-            ProductImage(
-                image_url=url,
-                alt_text=alt or name,
-                sort_order=sort_order,
-            )
-        )
+    upload_files = _coerce_uploads(new_images)
+
+    try:
+        uploads = await _process_new_uploads(upload_files, default_alt=name, starting_order=0)
+    except ImageUploadError as exc:
+        return _render_error(str(exc))
+    for image in uploads:
+        product.images.append(image)
 
     db.add(product)
     db.commit()
@@ -426,12 +498,16 @@ def edit_product(
     category_options = _category_parent_options(
         db, include_predicate=lambda cat: cat.is_active or cat.id == (product.category_id or -1)
     )
-    images_serialized = []
-    for image in sorted(product.images, key=lambda img: img.sort_order):
-        if image.alt_text:
-            images_serialized.append(f"{image.image_url} | {image.alt_text}")
-        else:
-            images_serialized.append(image.image_url)
+    sorted_images = sorted(product.images, key=lambda img: img.sort_order)
+    images_context = [
+        {
+            "id": image.id,
+            "url": image.image_url,
+            "alt_text": image.alt_text or "",
+            "sort_order": image.sort_order,
+        }
+        for image in sorted_images
+    ]
 
     form_data = {
         "name": product.name,
@@ -439,7 +515,6 @@ def edit_product(
         "oem_number": product.oem_number,
         "summary": product.summary or "",
         "category_id": str(product.category_id) if product.category_id else "",
-        "image_entries": "\n".join(images_serialized),
     }
 
     context = {
@@ -449,6 +524,7 @@ def edit_product(
         "form_error": None,
         "form_data": form_data,
         "categories": category_options,
+        "existing_images": images_context,
         "form_mode": "edit",
         "form_action": f"/admin/products/{product_id}/edit",
         "submit_label": "Update product",
@@ -459,7 +535,7 @@ def edit_product(
 
 
 @router.post("/products/{product_id}/edit", response_class=HTMLResponse)
-def update_product(
+async def update_product(
     request: Request,
     product_id: int,
     name: str = Form(...),
@@ -467,7 +543,7 @@ def update_product(
     oem_number: str = Form(...),
     summary: str = Form(""),
     category_id: str = Form(""),
-    image_entries: str = Form(""),
+    new_images: Union[UploadFile, list[UploadFile], None] = File(default=None),
     db: Session = Depends(get_db),
 ):
     admin = _ensure_admin(request, db)
@@ -483,7 +559,6 @@ def update_product(
     oem_number = oem_number.strip()
     summary = summary.strip()
     category_value = category_id.strip() or None
-    image_entries_value = image_entries.strip()
 
     category_options = _category_parent_options(
         db, include_predicate=lambda cat: cat.is_active or cat.id == (product.category_id or -1)
@@ -494,8 +569,25 @@ def update_product(
         "oem_number": oem_number,
         "summary": summary,
         "category_id": category_value or "",
-        "image_entries": image_entries_value,
     }
+
+    form_payload = await request.form()
+
+    def _existing_images_context() -> list[dict[str, Any]]:
+        serialized: list[dict[str, Any]] = []
+        for image in sorted(product.images, key=lambda img: img.sort_order):
+            serialized.append(
+                {
+                    "id": image.id,
+                    "url": image.image_url,
+                    "alt_text": form_payload.get(f"existing_image_alt_{image.id}", image.alt_text or ""),
+                    "sort_order": form_payload.get(
+                        f"existing_image_order_{image.id}", str(image.sort_order)
+                    ),
+                    "pending_delete": bool(form_payload.get(f"existing_image_delete_{image.id}")),
+                }
+            )
+        return serialized
 
     def _render_error(message: str):
         context = {
@@ -505,6 +597,7 @@ def update_product(
             "form_error": message,
             "form_data": form_data,
             "categories": category_options,
+            "existing_images": _existing_images_context(),
             "form_mode": "edit",
             "form_action": f"/admin/products/{product_id}/edit",
             "submit_label": "Update product",
@@ -536,25 +629,53 @@ def update_product(
         if not category_obj:
             return _render_error("Selected category does not exist.")
 
-    image_pairs = _parse_image_entries(image_entries_value)
+    image_updates: list[tuple[ProductImage, str, int]] = []
+    images_to_delete: list[ProductImage] = []
+    for image in sorted(product.images, key=lambda img: img.sort_order):
+        delete_flag = form_payload.get(f"existing_image_delete_{image.id}")
+        alt_value = form_payload.get(f"existing_image_alt_{image.id}", "").strip()
+        order_raw = form_payload.get(f"existing_image_order_{image.id}", str(image.sort_order))
+        try:
+            order_value = int(order_raw)
+        except ValueError:
+            return _render_error("Image order must be an integer.")
+
+        if delete_flag:
+            images_to_delete.append(image)
+        else:
+            image_updates.append((image, alt_value or name, order_value))
+
+    remaining_orders = [order for (_, _, order) in image_updates]
+    max_order = max(remaining_orders) if remaining_orders else -1
+
+    upload_files = _coerce_uploads(new_images)
+
+    try:
+        uploads = await _process_new_uploads(
+            upload_files,
+            default_alt=name,
+            starting_order=max_order + 1,
+        )
+    except ImageUploadError as exc:
+        return _render_error(str(exc))
+
+    for image, alt_value, order_value in image_updates:
+        image.alt_text = alt_value
+        image.sort_order = order_value
+
+    for image in images_to_delete:
+        _remove_image_file(image.image_url)
+        product.images.remove(image)
+        db.delete(image)
+
+    for image in uploads:
+        product.images.append(image)
 
     product.name = name
     product.sku = sku
     product.oem_number = oem_number
     product.summary = summary
     product.category = category_obj
-    product.images.clear()
-
-    for sort_order, (url, alt) in enumerate(image_pairs):
-        if not url:
-            continue
-        product.images.append(
-            ProductImage(
-                image_url=url,
-                alt_text=alt or name,
-                sort_order=sort_order,
-            )
-        )
 
     db.add(product)
     db.commit()
@@ -874,7 +995,10 @@ def delete_product(
 
     prod = db.get(Product, product_id)
     if not prod:
-        return _render_categories_page(request, admin, db, message="Product not found.", message_kind="error")
+        return RedirectResponse(url="/admin/products", status_code=status.HTTP_303_SEE_OTHER)
+
+    for image in list(prod.images):
+        _remove_image_file(image.image_url)
 
     db.delete(prod)
     db.commit()

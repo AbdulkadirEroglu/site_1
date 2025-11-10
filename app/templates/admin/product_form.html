@@ -15,7 +15,7 @@
                     <p class="panel-subtitle">Provide the required identifiers and optional metadata.</p>
                 </div>
             </header>
-            <form class="admin-form" method="post" action="{{ form_action }}">
+            <form class="admin-form" method="post" action="{{ form_action }}" enctype="multipart/form-data">
                 {% if form_error %}
                 <div class="form-error" role="alert">{{ form_error }}</div>
                 {% endif %}
@@ -44,10 +44,46 @@
                         {% endfor %}
                     </select>
                 </label>
-                <label>
-                    Image URLs
-                    <textarea name="image_entries" rows="5" placeholder="One URL per line. Optional alt text after a pipe: https://example.com/image.jpg | Alt text">{{ form_data.image_entries }}</textarea>
-                </label>
+                <section class="image-manager">
+                    <header>
+                        <h3>Images</h3>
+                        <p class="panel-subtitle">Upload, reorder, or remove gallery images.</p>
+                    </header>
+                    {% if existing_images %}
+                    <ul class="image-list">
+                        {% for image in existing_images %}
+                        <li class="image-card">
+                            <div class="image-card-header">
+                                <img src="{{ image.url }}" alt="{{ image.alt_text or form_data.name or 'Product image' }}" loading="lazy" />
+                            </div>
+                            <div class="image-card-body">
+                                <label>
+                                    Alt text
+                                    <input type="text" name="existing_image_alt_{{ image.id }}" value="{{ image.alt_text }}" />
+                                </label>
+                                <div class="image-field-row">
+                                    <label>
+                                        Display order
+                                        <input type="number" name="existing_image_order_{{ image.id }}" value="{{ image.sort_order }}" />
+                                    </label>
+                                    <label class="checkbox-inline">
+                                        <input type="checkbox" name="existing_image_delete_{{ image.id }}" {% if image.pending_delete %}checked{% endif %} />
+                                        <span>Remove?</span>
+                                    </label>
+                                </div>
+                            </div>
+                        </li>
+                        {% endfor %}
+                    </ul>
+                    {% else %}
+                    <p class="field-note">No images yet. Upload files below to populate the gallery.</p>
+                    {% endif %}
+                    <label>
+                        Upload new images
+                        <input type="file" name="new_images" accept="image/*" multiple />
+                    </label>
+                    <p class="field-note">New uploads are added after you save. Set final order/alt text by editing the product again if needed.</p>
+                </section>
                 <div class="form-actions">
                     <button class="btn ghost" type="reset">Reset</button>
                     <button class="btn primary" type="submit">{{ submit_label }}</button>
