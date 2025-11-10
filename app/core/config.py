@@ -1,13 +1,28 @@
 from functools import lru_cache
+from typing import Literal
 
+from pydantic import Field, model_validator
 from pydantic_settings import BaseSettings
 
 
 class Settings(BaseSettings):
-    project_name: str = "Product Catalog Platform"
-    database_url: str = "postgresql+psycopg://catalog_user:catalog_pass@localhost:5432/catalog"
-    secret_key: str = "we_are_working-on-3-in_the-night"
-    session_cookie_name: str = "admin_session"
+    project_name: str = Field(default="Product Catalog Platform", env="PROJECT_NAME")
+    database_url: str = Field(..., env="DATABASE_URL")
+    secret_key: str = Field(..., env="SECRET_KEY")
+    session_cookie_name: str = Field(default="admin_session", env="SESSION_COOKIE_NAME")
+    session_cookie_secure: bool = Field(default=True, env="SESSION_COOKIE_SECURE")
+    session_cookie_max_age: int | None = Field(default=60 * 60 * 4, env="SESSION_COOKIE_MAX_AGE")
+    session_cookie_same_site: Literal["lax", "strict", "none"] = Field(
+        default="lax", env="SESSION_COOKIE_SAME_SITE"
+    )
+
+    @model_validator(mode="after")
+    def validate_security(self) -> "Settings":
+        if len(self.secret_key) < 32:
+            raise ValueError("SECRET_KEY must be at least 32 characters long.")
+        if "://" not in self.database_url:
+            raise ValueError("DATABASE_URL must be a valid connection string.")
+        return self
 
     class Config:
         env_file = ".env"

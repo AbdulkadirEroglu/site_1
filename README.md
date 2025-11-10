@@ -16,12 +16,15 @@ source .venv/bin/activate
 pip install -r requirements.txt
 ```
 
-Create a `.env` file to override configuration as needed:
+Create a `.env` file to override configuration as needed (all values shown here are examples):
 
 ```
-DATABASE_URL=postgresql+psycopg://catalog_user:catalog_pass@localhost:5432/catalog
-SECRET_KEY=generate-a-long-random-string-here
+DATABASE_URL=postgresql+psycopg2://catalog_user:catalog_pass@localhost:5432/catalog
+SECRET_KEY=please-generate-a-very-long-random-string-here
 SESSION_COOKIE_NAME=admin_session
+SESSION_COOKIE_SECURE=false  # set to true in production
+SESSION_COOKIE_MAX_AGE=14400
+SESSION_COOKIE_SAME_SITE=lax
 ```
 
 ### Bootstrapping the database
@@ -65,3 +68,16 @@ requirements.txt
 - Wire templates to database-backed CRUD endpoints
 - Add API schemas and client-side interactivity for catalog filtering
 - Introduce automated tests and CI workflows
+
+## Deployment readiness checklist
+- [ ] Replace the placeholder `SECRET_KEY`, database URL, and session cookie name in `app/core/config.py` with environment variables specific to each server, and lock down `SessionMiddleware` cookies (`secure`, `httponly`, `max_age`, `same_site`).
+- [ ] Decide on a single PostgreSQL driver (`psycopg` _or_ `psycopg2`), update `requirements.txt`, and verify dependency installation in the production environment.
+- [ ] Document the production process manager (e.g., systemd, Supervisor, Docker) and how to run Uvicorn/Gunicorn when the site is deployed over FTP.
+- [ ] Introduce Alembic migrations instead of relying on `Base.metadata.create_all()` in `scripts/bootstrap.py`, so future schema changes do not require manual intervention.
+- [ ] Fix the bootstrap docs/CLI mismatch by supporting an `--email` (or updating the README to reflect `--uname`) and clearly explaining how initial admin credentials are created.
+- [ ] Seed baseline catalog/category data (plus hosted product imagery) so the public pages are not empty immediately after deployment.
+- [ ] Harden the admin experience: add CSRF protection, rate limiting, logging, and a password-reset flow to the `/admin/login` workflow.
+- [ ] Make dashboard metrics, catalog/category search boxes, and status pills reflect real database queries (instead of static placeholders).
+- [ ] Enhance category/product management: allow re-parenting, expose `is_active` toggles, add an image uploader, and ensure deletion flows redirect back to the relevant listing with confirmations.
+- [ ] Implement functional catalog filters, hook up the homepage hero search, and send the contact form data to an email/service endpoint.
+- [ ] Create the supporting marketing/legal pages referenced in the footer (privacy, terms, 404, robots.txt) and add monitoring/alerting guidance for `/health`.

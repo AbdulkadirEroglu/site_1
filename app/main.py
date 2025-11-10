@@ -12,7 +12,9 @@ app.add_middleware(
     SessionMiddleware,
     secret_key=settings.secret_key,
     session_cookie=settings.session_cookie_name,
-    same_site="lax",
+    same_site=settings.session_cookie_same_site,
+    https_only=settings.session_cookie_secure,
+    max_age=settings.session_cookie_max_age,
 )
 
 app.mount("/static", StaticFiles(directory="app/static"), name="static")
