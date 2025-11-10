@@ -3,6 +3,7 @@
 {% block layout %}
 <section class="auth-container">
     <form class="auth-card" method="post" action="/admin/login">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token }}" />
         <h1>Admin login</h1>
         <p class="subtitle">Access the NovaCommerce control center.</p>
         {% if form_error %}

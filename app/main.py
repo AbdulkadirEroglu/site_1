@@ -3,9 +3,11 @@ from fastapi.staticfiles import StaticFiles
 from starlette.middleware.sessions import SessionMiddleware
 
 from app.core.config import get_settings
+from app.core.logging import configure_logging
 from app.routers import admin, site
 
 settings = get_settings()
+configure_logging(settings.log_level)
 
 app = FastAPI(title=settings.project_name)
 app.add_middleware(

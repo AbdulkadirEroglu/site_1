@@ -12,6 +12,7 @@
         <a href="/admin/categories" class="nav-link {% if page == 'categories' %}is-active{% endif %}">Categories</a>
     </nav>
     <form method="post" action="/admin/logout">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token }}" />
         <button class="btn ghost" type="submit">Sign out</button>
     </form>
 </aside>

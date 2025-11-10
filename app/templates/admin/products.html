@@ -44,6 +44,7 @@
                         <td>
                             <a class="btn small" href="/admin/products/{{ product.id }}/edit">Edit</a>
                             <form method="post" action="/admin/products/{{ product.id }}/delete" style="display:inline;" onsubmit="return confirm('Delete this product all of its images?');">
+                                <input type="hidden" name="csrf_token" value="{{ csrf_token }}" />
                                 <button class="btn ghost small" type="submit">Delete</button>
                             </form>
                         </td>

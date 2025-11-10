@@ -1,3 +1,4 @@
+import logging
 import re
 from collections import defaultdict
 from pathlib import Path
@@ -10,6 +11,9 @@ from fastapi.templating import Jinja2Templates
 from sqlalchemy import func, or_, select
 from sqlalchemy.orm import Session
 
+from app.core.config import get_settings
+from app.core.csrf import ensure_csrf_token, validate_csrf_token
+from app.core.rate_limit import RateLimiter
 from app.core.security import verify_password
 from app.db.models import AdminUser, Category, Product, ProductImage
 from app.db.session import get_db
@@ -17,6 +21,13 @@ from app.db.session import get_db
 templates = Jinja2Templates(directory="app/templates")
 
 router = APIRouter(prefix="/admin", tags=["Admin"])
+
+logger = logging.getLogger("app.admin")
+settings = get_settings()
+login_rate_limiter = RateLimiter(
+    max_requests=settings.login_rate_limit_max_attempts,
+    window_seconds=settings.login_rate_limit_window_seconds,
+)
 
 UPLOAD_ROOT = Path("app/static/uploads/products")
 UPLOAD_ROOT.mkdir(parents=True, exist_ok=True)
@@ -108,6 +119,18 @@ def _remove_image_file(image_url: Optional[str]) -> None:
 
     if full_path.exists():
         full_path.unlink()
+
+
+def _build_context(request: Request, extra: dict[str, Any]) -> dict[str, Any]:
+    context = {"request": request, "csrf_token": ensure_csrf_token(request)}
+    context.update(extra)
+    return context
+
+
+def _client_identifier(request: Request) -> str:
+    if request.client and request.client.host:
+        return request.client.host
+    return "unknown"
 
 
 def _coerce_uploads(
@@ -228,14 +251,16 @@ def _render_categories_page(
     message_kind: str = "info",
 ) -> HTMLResponse:
     categories = _category_tree_with_stats(db)
-    context = {
-        "request": request,
-        "page": "categories",
-        "admin": admin,
-        "categories": categories,
-        "page_message": message,
-        "page_message_kind": message_kind,
-    }
+    context = _build_context(
+        request,
+        {
+            "page": "categories",
+            "admin": admin,
+            "categories": categories,
+            "page_message": message,
+            "page_message_kind": message_kind,
+        },
+    )
     return templates.TemplateResponse("admin/categories.html", context)
 
 
@@ -260,7 +285,7 @@ def login(request: Request, db: Session = Depends(get_db)):
 
     return templates.TemplateResponse(
         "admin/login.html",
-        {"request": request, "page": "login", "form_error": None},
+        _build_context(request, {"page": "login", "form_error": None}),
     )
 
 
@@ -269,11 +294,28 @@ def login_submit(
     request: Request,
     username: str = Form(...),
     password: str = Form(...),
+    csrf_token: str = Form(...),
     db: Session = Depends(get_db),
 ):
-    context = {"request": request, "page": "login", "form_error": None}
-
+    validate_csrf_token(request, csrf_token)
     normalized_username = username.strip()
+    client_id = _client_identifier(request)
+
+    allowed, retry_after = login_rate_limiter.allow(client_id)
+    if not allowed:
+        logger.warning(
+            "admin_login_rate_limited",
+            extra={"username": normalized_username, "client": client_id, "retry_after": retry_after},
+        )
+        context = _build_context(
+            request,
+            {
+                "page": "login",
+                "form_error": "Too many login attempts. Please try again in a few minutes.",
+            },
+        )
+        return templates.TemplateResponse("admin/login.html", context, status_code=status.HTTP_429_TOO_MANY_REQUESTS)
+
     stmt = select(AdminUser).where(
         AdminUser.user_name == normalized_username,
         AdminUser.is_active.is_(True),
@@ -281,16 +323,30 @@ def login_submit(
     admin = db.execute(stmt).scalar_one_or_none()
 
     if not admin or not verify_password(password, admin.password_hash):
-        context["form_error"] = "Invalid username or password."
+        logger.warning(
+            "admin_login_failed",
+            extra={"username": normalized_username, "client": client_id},
+        )
+        context = _build_context(
+            request,
+            {"page": "login", "form_error": "Invalid username or password."},
+        )
         return templates.TemplateResponse("admin/login.html", context, status_code=status.HTTP_400_BAD_REQUEST)
 
     request.session["admin_user_id"] = admin.id
+    logger.info(
+        "admin_login_success",
+        extra={"admin_id": admin.id, "username": admin.user_name, "client": client_id},
+    )
     return RedirectResponse(url="/admin/dashboard", status_code=status.HTTP_303_SEE_OTHER)
 
 
 @router.post("/logout")
-def logout(request: Request):
+def logout(request: Request, csrf_token: str = Form(...)):
+    validate_csrf_token(request, csrf_token)
+    admin_id = request.session.get("admin_user_id")
     request.session.pop("admin_user_id", None)
+    logger.info("admin_logout", extra={"admin_user_id": admin_id})
     response = RedirectResponse(url="/admin/login", status_code=status.HTTP_303_SEE_OTHER)
     return response
 
@@ -303,7 +359,7 @@ def dashboard(request: Request, db: Session = Depends(get_db)):
 
     return templates.TemplateResponse(
         "admin/dashboard.html",
-        {"request": request, "page": "dashboard", "admin": admin},
+        _build_context(request, {"page": "dashboard", "admin": admin}),
     )
 
 
@@ -351,12 +407,14 @@ def manage_products(request: Request, db: Session = Depends(get_db)):
 
     return templates.TemplateResponse(
         "admin/products.html",
-        {
-            "request": request,
-            "page": "products",
-            "admin": admin,
-            "products": products,
-        },
+        _build_context(
+            request,
+            {
+                "page": "products",
+                "admin": admin,
+                "products": products,
+            },
+        ),
     )
 
 
@@ -368,25 +426,27 @@ def new_product(request: Request, db: Session = Depends(get_db)):
 
     category_options = _category_parent_options(db, include_predicate=lambda cat: cat.is_active)
 
-    context = {
-        "request": request,
-        "page": "products",
-        "admin": admin,
-        "form_error": None,
-        "form_data": {
-            "name": "",
-            "sku": "",
-            "oem_number": "",
-            "summary": "",
-            "category_id": "",
+    context = _build_context(
+        request,
+        {
+            "page": "products",
+            "admin": admin,
+            "form_error": None,
+            "form_data": {
+                "name": "",
+                "sku": "",
+                "oem_number": "",
+                "summary": "",
+                "category_id": "",
+            },
+            "categories": category_options,
+            "existing_images": [],
+            "form_mode": "create",
+            "form_action": "/admin/products/new",
+            "submit_label": "Create product",
+            "form_title": "Add product",
         },
-        "categories": category_options,
-        "existing_images": [],
-        "form_mode": "create",
-        "form_action": "/admin/products/new",
-        "submit_label": "Create product",
-        "form_title": "Add product",
-    }
+    )
     return templates.TemplateResponse("admin/product_form.html", context)
 
 
@@ -399,12 +459,14 @@ async def create_product(
     summary: str = Form(""),
     category_id: str = Form(""),
     new_images: Union[UploadFile, list[UploadFile], None] = File(default=None),
+    csrf_token: str = Form(...),
     db: Session = Depends(get_db),
 ):
     admin = _ensure_admin(request, db)
     if not admin:
         return RedirectResponse(url="/admin/login", status_code=status.HTTP_303_SEE_OTHER)
 
+    validate_csrf_token(request, csrf_token)
     name = name.strip()
     sku = sku.strip()
     oem_number = oem_number.strip()
@@ -421,19 +483,21 @@ async def create_product(
     }
 
     def _render_error(message: str):
-        context = {
-            "request": request,
-            "page": "products",
-            "admin": admin,
-            "form_error": message,
-            "form_data": form_data,
-            "categories": category_options,
-            "existing_images": [],
-            "form_mode": "create",
-            "form_action": "/admin/products/new",
-            "submit_label": "Create product",
-            "form_title": "Add product",
-        }
+        context = _build_context(
+            request,
+            {
+                "page": "products",
+                "admin": admin,
+                "form_error": message,
+                "form_data": form_data,
+                "categories": category_options,
+                "existing_images": [],
+                "form_mode": "create",
+                "form_action": "/admin/products/new",
+                "submit_label": "Create product",
+                "form_title": "Add product",
+            },
+        )
         return templates.TemplateResponse("admin/product_form.html", context, status_code=status.HTTP_400_BAD_REQUEST)
 
     if not name or not sku or not oem_number:
@@ -477,6 +541,10 @@ async def create_product(
 
     db.add(product)
     db.commit()
+    logger.info(
+        "product_created",
+        extra={"product_id": product.id, "admin_id": admin.id},
+    )
 
     return RedirectResponse(url="/admin/products", status_code=status.HTTP_303_SEE_OTHER)
 
@@ -517,20 +585,22 @@ def edit_product(
         "category_id": str(product.category_id) if product.category_id else "",
     }
 
-    context = {
-        "request": request,
-        "page": "products",
-        "admin": admin,
-        "form_error": None,
-        "form_data": form_data,
-        "categories": category_options,
-        "existing_images": images_context,
-        "form_mode": "edit",
-        "form_action": f"/admin/products/{product_id}/edit",
-        "submit_label": "Update product",
-        "form_title": f"Edit {product.name}",
-        "product_id": product_id,
-    }
+    context = _build_context(
+        request,
+        {
+            "page": "products",
+            "admin": admin,
+            "form_error": None,
+            "form_data": form_data,
+            "categories": category_options,
+            "existing_images": images_context,
+            "form_mode": "edit",
+            "form_action": f"/admin/products/{product_id}/edit",
+            "submit_label": "Update product",
+            "form_title": f"Edit {product.name}",
+            "product_id": product_id,
+        },
+    )
     return templates.TemplateResponse("admin/product_form.html", context)
 
 
@@ -544,6 +614,7 @@ async def update_product(
     summary: str = Form(""),
     category_id: str = Form(""),
     new_images: Union[UploadFile, list[UploadFile], None] = File(default=None),
+    csrf_token: str = Form(...),
     db: Session = Depends(get_db),
 ):
     admin = _ensure_admin(request, db)
@@ -554,6 +625,7 @@ async def update_product(
     if not product:
         return RedirectResponse(url="/admin/products", status_code=status.HTTP_303_SEE_OTHER)
 
+    validate_csrf_token(request, csrf_token)
     name = name.strip()
     sku = sku.strip()
     oem_number = oem_number.strip()
@@ -590,20 +662,22 @@ async def update_product(
         return serialized
 
     def _render_error(message: str):
-        context = {
-            "request": request,
-            "page": "products",
-            "admin": admin,
-            "form_error": message,
-            "form_data": form_data,
-            "categories": category_options,
-            "existing_images": _existing_images_context(),
-            "form_mode": "edit",
-            "form_action": f"/admin/products/{product_id}/edit",
-            "submit_label": "Update product",
-            "form_title": f"Edit {product.name}",
-            "product_id": product_id,
-        }
+        context = _build_context(
+            request,
+            {
+                "page": "products",
+                "admin": admin,
+                "form_error": message,
+                "form_data": form_data,
+                "categories": category_options,
+                "existing_images": _existing_images_context(),
+                "form_mode": "edit",
+                "form_action": f"/admin/products/{product_id}/edit",
+                "submit_label": "Update product",
+                "form_title": f"Edit {product.name}",
+                "product_id": product_id,
+            },
+        )
         return templates.TemplateResponse("admin/product_form.html", context, status_code=status.HTTP_400_BAD_REQUEST)
 
     if not name or not sku or not oem_number:
@@ -679,6 +753,10 @@ async def update_product(
 
     db.add(product)
     db.commit()
+    logger.info(
+        "product_updated",
+        extra={"product_id": product.id, "admin_id": admin.id},
+    )
 
     return RedirectResponse(url="/admin/products", status_code=status.HTTP_303_SEE_OTHER)
 
@@ -698,19 +776,21 @@ def new_category(request: Request, db: Session = Depends(get_db)):
     if not admin:
         return RedirectResponse(url="/admin/login", status_code=status.HTTP_303_SEE_OTHER)
 
-    context = {
-        "request": request,
-        "page": "categories",
-        "admin": admin,
-        "form_error": None,
-        "form_data": {"name": "", "slug": "", "description": "", "level": 0, "order": "", "parent_id": ""},
-        "parent_options": _category_parent_options(db),
-        "form_mode": "create",
-        "form_action": "/admin/categories/new",
-        "submit_label": "Create category",
-        "form_title": "Add category",
-        "parent_display": None,
-    }
+    context = _build_context(
+        request,
+        {
+            "page": "categories",
+            "admin": admin,
+            "form_error": None,
+            "form_data": {"name": "", "slug": "", "description": "", "level": 0, "order": "", "parent_id": ""},
+            "parent_options": _category_parent_options(db),
+            "form_mode": "create",
+            "form_action": "/admin/categories/new",
+            "submit_label": "Create category",
+            "form_title": "Add category",
+            "parent_display": None,
+        },
+    )
     return templates.TemplateResponse("admin/category_form.html", context)
 
 
@@ -722,12 +802,14 @@ def create_category(
     description: str = Form(""),
     order: str = Form(""),
     parent_id: str = Form(""),
+    csrf_token: str = Form(...),
     db: Session = Depends(get_db),
 ):
     admin = _ensure_admin(request, db)
     if not admin:
         return RedirectResponse(url="/admin/login", status_code=status.HTTP_303_SEE_OTHER)
 
+    validate_csrf_token(request, csrf_token)
     name = name.strip()
     provided_slug = slug.strip()
     description = description.strip()
@@ -745,19 +827,21 @@ def create_category(
     }
 
     def _render_error(message: str):
-        context = {
-            "request": request,
-            "page": "categories",
-            "admin": admin,
-            "form_error": message,
-            "form_data": form_data,
-            "parent_options": parent_options,
-            "form_mode": "create",
-            "form_action": "/admin/categories/new",
-            "submit_label": "Create category",
-            "form_title": "Add category",
-            "parent_display": None,
-        }
+        context = _build_context(
+            request,
+            {
+                "page": "categories",
+                "admin": admin,
+                "form_error": message,
+                "form_data": form_data,
+                "parent_options": parent_options,
+                "form_mode": "create",
+                "form_action": "/admin/categories/new",
+                "submit_label": "Create category",
+                "form_title": "Add category",
+                "parent_display": None,
+            },
+        )
         return templates.TemplateResponse("admin/category_form.html", context, status_code=status.HTTP_400_BAD_REQUEST)
 
 
@@ -813,6 +897,10 @@ def create_category(
     )
     db.add(category)
     db.commit()
+    logger.info(
+        "category_created",
+        extra={"category_id": category.id, "admin_id": admin.id},
+    )
 
     return RedirectResponse(url="/admin/categories", status_code=status.HTTP_303_SEE_OTHER)
 
@@ -842,20 +930,22 @@ def edit_category(
         "level": str(category.level),
     }
 
-    context = {
-        "request": request,
-        "page": "categories",
-        "admin": admin,
-        "form_error": None,
-        "form_data": form_data,
-        "parent_options": None,
-        "form_mode": "edit",
-        "form_action": f"/admin/categories/{category_id}/edit",
-        "submit_label": "Update category",
-        "form_title": f"Edit {category.name}",
-        "parent_display": parent_label,
-        "category_id": category_id,
-    }
+    context = _build_context(
+        request,
+        {
+            "page": "categories",
+            "admin": admin,
+            "form_error": None,
+            "form_data": form_data,
+            "parent_options": None,
+            "form_mode": "edit",
+            "form_action": f"/admin/categories/{category_id}/edit",
+            "submit_label": "Update category",
+            "form_title": f"Edit {category.name}",
+            "parent_display": parent_label,
+            "category_id": category_id,
+        },
+    )
     return templates.TemplateResponse("admin/category_form.html", context)
 
 
@@ -868,6 +958,7 @@ def update_category(
     description: str = Form(""),
     order: str = Form(""),
     parent_id: str = Form(""),
+    csrf_token: str = Form(...),
     db: Session = Depends(get_db),
 ):
     admin = _ensure_admin(request, db)
@@ -895,21 +986,25 @@ def update_category(
         "level": str(category.level),
     }
 
+    validate_csrf_token(request, csrf_token)
+
     def _render_error(message: str):
-        context = {
-            "request": request,
-            "page": "categories",
-            "admin": admin,
-            "form_error": message,
-            "form_data": form_data,
-            "parent_options": None,
-            "form_mode": "edit",
-            "form_action": f"/admin/categories/{category_id}/edit",
-            "submit_label": "Update category",
-            "form_title": f"Edit {category.name}",
-            "parent_display": parent_label,
-            "category_id": category_id,
-        }
+        context = _build_context(
+            request,
+            {
+                "page": "categories",
+                "admin": admin,
+                "form_error": message,
+                "form_data": form_data,
+                "parent_options": None,
+                "form_mode": "edit",
+                "form_action": f"/admin/categories/{category_id}/edit",
+                "submit_label": "Update category",
+                "form_title": f"Edit {category.name}",
+                "parent_display": parent_label,
+                "category_id": category_id,
+            },
+        )
         return templates.TemplateResponse("admin/category_form.html", context, status_code=status.HTTP_400_BAD_REQUEST)
 
     if not name:
@@ -940,6 +1035,10 @@ def update_category(
 
     db.add(category)
     db.commit()
+    logger.info(
+        "category_updated",
+        extra={"category_id": category.id, "admin_id": admin.id},
+    )
 
     return RedirectResponse(url="/admin/categories", status_code=status.HTTP_303_SEE_OTHER)
 
@@ -948,12 +1047,14 @@ def update_category(
 def delete_category(
     request: Request,
     category_id: int,
+    csrf_token: str = Form(...),
     db: Session = Depends(get_db),
 ):
     admin = _ensure_admin(request, db)
     if not admin:
         return RedirectResponse(url="/admin/login", status_code=status.HTTP_303_SEE_OTHER)
 
+    validate_csrf_token(request, csrf_token)
     category = db.get(Category, category_id)
     if not category:
         return _render_categories_page(request, admin, db, message="Category not found.", message_kind="error")
@@ -979,6 +1080,10 @@ def delete_category(
 
     db.delete(category)
     db.commit()
+    logger.info(
+        "category_deleted",
+        extra={"category_id": category_id, "admin_id": admin.id},
+    )
 
     return RedirectResponse(url="/admin/categories", status_code=status.HTTP_303_SEE_OTHER)
 
@@ -987,12 +1092,14 @@ def delete_category(
 def delete_product(
     request: Request,
     product_id: int,
+    csrf_token: str = Form(...),
     db: Session = Depends(get_db),
 ):
     admin = _ensure_admin(request, db)
     if not admin:
         return RedirectResponse(url="/admin/login", status_code=status.HTTP_303_SEE_OTHER)
 
+    validate_csrf_token(request, csrf_token)
     prod = db.get(Product, product_id)
     if not prod:
         return RedirectResponse(url="/admin/products", status_code=status.HTTP_303_SEE_OTHER)
@@ -1002,5 +1109,9 @@ def delete_product(
 
     db.delete(prod)
     db.commit()
+    logger.info(
+        "product_deleted",
+        extra={"product_id": product_id, "admin_id": admin.id},
+    )
 
     return RedirectResponse(url="/admin/products", status_code=status.HTTP_303_SEE_OTHER)

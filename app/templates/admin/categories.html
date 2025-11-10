@@ -48,6 +48,7 @@
                         <td>
                             <a class="btn small" href="/admin/categories/{{ category.id }}/edit">Edit</a>
                             <form method="post" action="/admin/categories/{{ category.id }}/delete" style="display:inline;" onsubmit="return confirm('Delete this category and all of its subcategories?');">
+                                <input type="hidden" name="csrf_token" value="{{ csrf_token }}" />
                                 <button class="btn ghost small" type="submit">Delete</button>
                             </form>
                         </td>

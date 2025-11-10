@@ -15,6 +15,9 @@ class Settings(BaseSettings):
     session_cookie_same_site: Literal["lax", "strict", "none"] = Field(
         default="lax", env="SESSION_COOKIE_SAME_SITE"
     )
+    log_level: str = Field(default="INFO", env="LOG_LEVEL")
+    login_rate_limit_window_seconds: int = Field(default=300, env="LOGIN_RATE_LIMIT_WINDOW_SECONDS")
+    login_rate_limit_max_attempts: int = Field(default=5, env="LOGIN_RATE_LIMIT_MAX_ATTEMPTS")
 
     @model_validator(mode="after")
     def validate_security(self) -> "Settings":

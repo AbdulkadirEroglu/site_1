@@ -16,6 +16,7 @@
                 </div>
             </header>
             <form class="admin-form" method="post" action="{{ form_action }}" enctype="multipart/form-data">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token }}" />
                 {% if form_error %}
                 <div class="form-error" role="alert">{{ form_error }}</div>
                 {% endif %}
@@ -68,7 +69,7 @@
                                     </label>
                                     <label class="checkbox-inline">
                                         <input type="checkbox" name="existing_image_delete_{{ image.id }}" {% if image.pending_delete %}checked{% endif %} />
-                                        <span>Remove?</span>
+                                        <span>Remove image</span>
                                     </label>
                                 </div>
                             </div>

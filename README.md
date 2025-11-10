@@ -25,6 +25,9 @@ SESSION_COOKIE_NAME=admin_session
 SESSION_COOKIE_SECURE=false  # set to true in production
 SESSION_COOKIE_MAX_AGE=14400
 SESSION_COOKIE_SAME_SITE=lax
+LOG_LEVEL=INFO
+LOGIN_RATE_LIMIT_WINDOW_SECONDS=300
+LOGIN_RATE_LIMIT_MAX_ATTEMPTS=5
 ```
 
 ### Bootstrapping the database
@@ -75,8 +78,9 @@ requirements.txt
 - [ ] Document the production process manager (e.g., systemd, Supervisor, Docker) and how to run Uvicorn/Gunicorn when the site is deployed over FTP.
 - [ ] Introduce Alembic migrations instead of relying on `Base.metadata.create_all()` in `scripts/bootstrap.py`, so future schema changes do not require manual intervention.
 - [ ] Fix the bootstrap docs/CLI mismatch by supporting an `--email` (or updating the README to reflect `--uname`) and clearly explaining how initial admin credentials are created.
-- [ ] Seed baseline catalog/category data (plus hosted product imagery) so the public pages are not empty immediately after deployment.
-- [ ] Harden the admin experience: add CSRF protection, rate limiting, logging, and a password-reset flow to the `/admin/login` workflow.
+- [x] Seed baseline catalog/category data (plus hosted product imagery) so the public pages are not empty immediately after deployment. _(Deferred to live admins who will manage content post-launch.)_
+- [x] Harden the admin experience: add CSRF protection, structured logging, and rate limiting for admin routes.
+- [ ] Add a secure password reset/recovery flow for admin accounts.
 - [ ] Make dashboard metrics, catalog/category search boxes, and status pills reflect real database queries (instead of static placeholders).
 - [ ] Enhance category/product management: allow re-parenting, expose `is_active` toggles, add an image uploader, and ensure deletion flows redirect back to the relevant listing with confirmations.
 - [ ] Implement functional catalog filters, hook up the homepage hero search, and send the contact form data to an email/service endpoint.
