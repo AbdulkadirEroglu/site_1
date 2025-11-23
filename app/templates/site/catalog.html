@@ -70,7 +70,7 @@
                         <a class="btn ghost" href="/products/{{ product.id }}">View details</a>
                         <form method="post" action="/cart/add">
                             <input type="hidden" name="product_id" value="{{ product.id }}" />
-                            <input type="hidden" name="redirect_to" value="{{ request.url }}" />
+                            <input type="hidden" name="redirect_to" value="{{ request.url.path }}" />
                             <button class="btn primary" type="submit">Add to cart</button>
                         </form>
                     </div>

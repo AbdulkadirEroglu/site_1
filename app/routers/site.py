@@ -363,6 +363,30 @@ def add_to_cart(
     return RedirectResponse(target, status_code=303)
 
 
+@router.post("/cart/update")
+def update_cart_quantity(
+    request: Request,
+    product_id: int = Form(...),
+    quantity: int = Form(...),
+    redirect_to: str | None = Form(None),
+    db: Session = Depends(get_db),
+):
+    product = db.get(Product, product_id)
+    if not product or not product.is_active:
+        raise HTTPException(status_code=404, detail="Product not found")
+
+    cart = _normalize_cart(request)
+    safe_quantity = max(0, min(quantity, 99))
+    if safe_quantity == 0:
+        cart.pop(product_id, None)
+    else:
+        cart[product_id] = safe_quantity
+    request.session[CART_SESSION_KEY] = {str(pid): qty for pid, qty in cart.items()}
+
+    target = _safe_redirect_target(redirect_to, request)
+    return RedirectResponse(target, status_code=303)
+
+
 @router.post("/cart/remove")
 def remove_from_cart(
     request: Request,

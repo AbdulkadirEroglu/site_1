@@ -13,15 +13,6 @@
         <span class="pill muted">Added {{ product.created_at.strftime("%b %d, %Y") }}</span>
         {% endif %}
     </div>
-    <div class="product-actions">
-        <form method="post" action="/cart/add">
-            <input type="hidden" name="product_id" value="{{ product.id }}" />
-            <input type="hidden" name="redirect_to" value="{{ request.url.path }}" />
-            <button class="btn primary" type="submit">Add to cart</button>
-        </form>
-        <a class="btn secondary" href="/cart">Request a quote</a>
-        <a class="btn ghost" href="/catalog">Back to catalog</a>
-    </div>
 </section>
 
 <section class="product-layout">
@@ -65,9 +56,11 @@
                 <p class="eyebrow">Need a quote?</p>
                 <p class="muted">Add this part to your cart and submit your quote request with a few details. We will follow up with availability and lead times.</p>
             </div>
-            <form method="post" action="/cart/add">
+            <form class="quantity-form" method="post" action="/cart/add">
                 <input type="hidden" name="product_id" value="{{ product.id }}" />
                 <input type="hidden" name="redirect_to" value="{{ request.url.path }}" />
+                <label class="sr-only" for="product-qty">Quantity</label>
+                <input id="product-qty" name="quantity" type="number" min="1" max="99" value="1" />
                 <button class="btn primary" type="submit">Add to cart</button>
             </form>
         </div>
