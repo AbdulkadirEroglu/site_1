@@ -54,8 +54,10 @@ You can pass `--password` on the command line or leave it out to be prompted sec
 
 Alembic is configured in `alembic.ini` with metadata in `alembic/env.py`.
 
-- New databases: run `alembic upgrade head` to create all tables, then run the bootstrap script for the admin account.
-- Existing databases: run `alembic stamp head` once to align versioning with the current schema, then `alembic upgrade head` for future changes.
+- New database: `alembic upgrade head` (creates all tables), then run the bootstrap script to seed the admin account.
+- Existing database with no Alembic history: `alembic stamp head` once, then `alembic upgrade head`.
+- Creating a new migration after model changes: `alembic revision --autogenerate -m "describe change"` then `alembic upgrade head`.
+- If you see a missing `script.py.mako` error, ensure the repository contains `alembic/script.py.mako` (included here) and that `alembic.ini` points to `script_location = alembic`.
 
 ### Running the application
 
@@ -66,6 +68,8 @@ uvicorn app.main:app --reload
 The site pages are available at `http://localhost:8000` and the admin routes under `http://localhost:8000/admin`.
 
 Notifications: if SMTP settings are provided, contact and quote requests will send emails to `NOTIFICATION_EMAIL` (or `SMTP_SENDER` as a fallback) and a confirmation to the requester.
+
+Admin import/export: in the admin Products page you can download an Excel template, import products (name, SKU, OEM, category path, summary, active), and export current products as .xlsx. Images are still managed via the product editor.
 
 ## Project structure
 

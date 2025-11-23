@@ -56,7 +56,7 @@
                     {% if product.category %}
                     <p class="catalog-meta">Category · {{ product.category }}</p>
                     {% endif %}
-                    <p>{{ product.summary or "Detailed description will be provided shortly." }}</p>
+                    <div class="rich-copy">{{ (product.summary or "Detailed description will be provided shortly.")|markdown }}</div>
                     {% if product.images|length > 1 %}
                     <ul class="catalog-thumbs" aria-label="Additional images">
                         {% for image in product.images[1:] %}

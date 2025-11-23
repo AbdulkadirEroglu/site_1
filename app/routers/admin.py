@@ -5,9 +5,13 @@ from collections import defaultdict
 from pathlib import Path
 from typing import Any, Callable, Optional, Union
 from uuid import uuid4
+import io
+from urllib.parse import quote
+
+from openpyxl import Workbook, load_workbook
 
 from fastapi import APIRouter, Depends, File, Form, Query, Request, UploadFile, status
-from fastapi.responses import HTMLResponse, RedirectResponse
+from fastapi.responses import HTMLResponse, RedirectResponse, StreamingResponse
 from fastapi.templating import Jinja2Templates
 from sqlalchemy import func, or_, select
 from sqlalchemy.orm import Session
@@ -512,6 +516,174 @@ def manage_products(
             },
         ),
     )
+
+
+def _ensure_category_path(db: Session, path: str) -> Optional[int]:
+    trimmed = path.strip()
+    if not trimmed:
+        return None
+    parts = [part.strip() for part in trimmed.split(">") if part.strip()]
+    parent_id = None
+    for depth, part in enumerate(parts):
+        existing = db.scalars(
+            select(Category).where(Category.parent_id.is_(parent_id), func.lower(Category.name) == part.lower())
+        ).first()
+        if existing:
+            parent_id = existing.id
+            continue
+        slug_base = _slugify(part)
+        slug = slug_base
+        counter = 1
+        while db.scalar(select(Category).where(Category.slug == slug)):
+            counter += 1
+            slug = f"{slug_base}-{counter}"
+        category = Category(name=part, slug=slug, parent_id=parent_id, level=depth)
+        db.add(category)
+        db.flush()
+        parent_id = category.id
+    return parent_id
+
+
+def _category_path_string(category: Optional[Category]) -> str:
+    if not category:
+        return ""
+    names: list[str] = []
+    current = category
+    while current:
+        names.append(current.name)
+        current = current.parent
+    return " > ".join(reversed(names))
+
+
+@router.get("/products/import", response_class=HTMLResponse)
+def import_products(request: Request, message: str = "", db: Session = Depends(get_db)):
+    admin = _ensure_admin(request, db)
+    if not admin:
+        return RedirectResponse(url="/admin/login", status_code=status.HTTP_303_SEE_OTHER)
+
+    context = _build_context(
+        request,
+        {
+            "page": "products",
+            "admin": admin,
+            "message": message,
+        },
+    )
+    return templates.TemplateResponse("admin/product_import.html", context)
+
+
+@router.get("/products/import-template")
+def download_import_template(request: Request, db: Session = Depends(get_db)):
+    admin = _ensure_admin(request, db)
+    if not admin:
+        return RedirectResponse(url="/admin/login", status_code=status.HTTP_303_SEE_OTHER)
+
+    wb = Workbook()
+    ws = wb.active
+    ws.title = "Products"
+    ws.append(["Name", "SKU", "OEM Number", "Category Path", "Summary", "Is Active"])
+    buffer = io.BytesIO()
+    wb.save(buffer)
+    buffer.seek(0)
+    return StreamingResponse(
+        buffer,
+        media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        headers={"Content-Disposition": "attachment; filename=product_import_template.xlsx"},
+    )
+
+
+@router.get("/products/export")
+def export_products(request: Request, db: Session = Depends(get_db)):
+    admin = _ensure_admin(request, db)
+    if not admin:
+        return RedirectResponse(url="/admin/login", status_code=status.HTTP_303_SEE_OTHER)
+
+    wb = Workbook()
+    ws = wb.active
+    ws.title = "Products"
+    ws.append(["Name", "SKU", "OEM Number", "Category Path", "Summary", "Is Active"])
+
+    products = db.scalars(
+        select(Product).options().order_by(Product.created_at.desc())
+    ).all()
+    for product in products:
+        category_path = _category_path_string(product.category)
+        ws.append(
+            [
+                product.name,
+                product.sku,
+                product.oem_number,
+                category_path,
+                product.summary or "",
+                "true" if product.is_active else "false",
+            ]
+        )
+
+    buffer = io.BytesIO()
+    wb.save(buffer)
+    buffer.seek(0)
+    return StreamingResponse(
+        buffer,
+        media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        headers={"Content-Disposition": "attachment; filename=products_export.xlsx"},
+    )
+
+
+@router.post("/products/import")
+async def import_products_post(
+    request: Request,
+    file: UploadFile = File(...),
+    csrf_token: str = Form(...),
+    db: Session = Depends(get_db),
+):
+    admin = _ensure_admin(request, db)
+    if not admin:
+        return RedirectResponse(url="/admin/login", status_code=status.HTTP_303_SEE_OTHER)
+
+    validate_csrf_token(request, csrf_token)
+
+    if not file.filename.endswith(".xlsx"):
+        return RedirectResponse(url="/admin/products/import?message=Upload a .xlsx file", status_code=303)
+
+    data = await file.read()
+    wb = load_workbook(io.BytesIO(data))
+    ws = wb.active
+    first_row = next(ws.iter_rows(min_row=1, max_row=1, values_only=True), None)
+    headers = list(first_row[:6]) if first_row else []
+    expected = ["Name", "SKU", "OEM Number", "Category Path", "Summary", "Is Active"]
+    if headers != expected:
+        return RedirectResponse(url="/admin/products/import?message=Headers do not match template", status_code=303)
+
+    created, updated, skipped = 0, 0, 0
+    for row in ws.iter_rows(min_row=2, values_only=True):
+        name, sku, oem_number, category_path, summary, is_active = row
+        if not (name and sku and oem_number):
+            skipped += 1
+            continue
+        category_id = _ensure_category_path(db, category_path or "") if category_path else None
+        product = db.scalar(select(Product).where(Product.sku == sku))
+        if product:
+            product.name = name
+            product.oem_number = oem_number
+            product.summary = summary
+            product.category_id = category_id
+            product.is_active = str(is_active).lower() == "true"
+            updated += 1
+        else:
+            product = Product(
+                name=name,
+                sku=sku,
+                oem_number=oem_number,
+                summary=summary,
+                category_id=category_id,
+                is_active=str(is_active).lower() == "true",
+            )
+            db.add(product)
+            created += 1
+
+    db.commit()
+    msg = quote(f"Import complete. Created: {created}, Updated: {updated}, Skipped: {skipped}")
+    return RedirectResponse(url=f"/admin/products/import?message={msg}", status_code=303)
 
 
 @router.get("/leads", response_class=HTMLResponse)

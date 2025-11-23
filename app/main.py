@@ -1,8 +1,12 @@
 from fastapi import FastAPI, Request
 from fastapi.staticfiles import StaticFiles
+from fastapi.templating import Jinja2Templates
 from starlette.middleware.sessions import SessionMiddleware
-from starlette.responses import TemplateResponse
+from starlette.responses import Response
 from starlette.exceptions import HTTPException as StarletteHTTPException
+from datetime import datetime
+from markupsafe import Markup
+import markdown as md
 
 from app.core.config import get_settings
 from app.core.logging import configure_logging
@@ -10,6 +14,9 @@ from app.routers import admin, site
 
 settings = get_settings()
 configure_logging(settings.log_level)
+templates = Jinja2Templates(directory="app/templates")
+templates.env.globals["now"] = datetime.utcnow
+templates.env.filters["markdown"] = lambda text: Markup(md.markdown(text or "", extensions=["extra", "sane_lists"]))
 
 app = FastAPI(title=settings.project_name)
 app.add_middleware(
@@ -35,5 +42,7 @@ def health_check():
 @app.exception_handler(StarletteHTTPException)
 async def http_exception_handler(request: Request, exc: StarletteHTTPException):
     if exc.status_code == 404:
-        return TemplateResponse("site/404.html", {"request": request, "page": "404"}, status_code=404)
+        cart_fallback = {"items": [], "total_items": 0, "has_items": False, "preview": []}
+        context = {"request": request, "page": "404", "cart": cart_fallback}
+        return templates.TemplateResponse("site/404.html", context, status_code=404)
     raise exc

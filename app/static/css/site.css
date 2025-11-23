@@ -914,6 +914,20 @@ body.site-body {
     font-size: 1.05rem;
 }
 
+.rich-copy p {
+    margin: 0 0 0.5rem 0;
+}
+
+.rich-copy ul {
+    margin: 0.25rem 0 0.75rem 1.25rem;
+    padding: 0;
+}
+
+.rich-copy a {
+    color: var(--primary);
+    text-decoration: underline;
+}
+
 .quote-card {
     border: 1px dashed var(--border);
     border-radius: calc(var(--radius) - 6px);

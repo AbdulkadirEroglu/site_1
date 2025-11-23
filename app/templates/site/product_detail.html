@@ -45,7 +45,7 @@
     </div>
     <div class="product-spec">
         <h2>Product overview</h2>
-        <p>{{ product.summary or "A detailed description will be provided soon. Contact us if you need specs or compatibility details right away." }}</p>
+        <div class="rich-copy">{{ (product.summary or "A detailed description will be provided soon. Contact us if you need specs or compatibility details right away.")|markdown }}</div>
         <dl class="spec-grid">
             <div>
                 <dt>OEM reference</dt>

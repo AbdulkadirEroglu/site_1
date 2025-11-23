@@ -20,34 +20,37 @@
                 {% if form_error %}
                 <div class="form-error" role="alert">{{ form_error }}</div>
                 {% endif %}
-                <label>
-                    Name
-                    <input name="name" type="text" required value="{{ form_data.name }}" />
-                </label>
-                <label>
-                    SKU
-                    <input name="sku" type="text" required value="{{ form_data.sku }}" />
-                </label>
-                <label>
-                    OEM number
-                    <input name="oem_number" type="text" required value="{{ form_data.oem_number }}" />
+                <div class="grid-2">
+                    <label>
+                        Name
+                        <input name="name" type="text" required value="{{ form_data.name }}" />
+                    </label>
+                    <label>
+                        SKU
+                        <input name="sku" type="text" required value="{{ form_data.sku }}" />
+                    </label>
+                    <label>
+                        OEM number
+                        <input name="oem_number" type="text" required value="{{ form_data.oem_number }}" />
+                    </label>
+                    <label>
+                        Category
+                        <select name="category_id">
+                            <option value="">Unassigned</option>
+                            {% for category in categories %}
+                            <option value="{{ category.id_str }}" {% if form_data.category_id == category.id_str %}selected{% endif %}>{{ category.label }}</option>
+                            {% endfor %}
+                        </select>
+                    </label>
+                </div>
+                <label class="checkbox-inline">
+                    <input type="checkbox" name="is_active" value="true" {% if form_data.is_active %}checked{% endif %} />
+                    <span>Visible</span>
                 </label>
                 <label>
                     Summary
-                    <textarea name="summary" rows="4" placeholder="Optional description for internal context.">{{ form_data.summary }}</textarea>
-                </label>
-                <label class="checkbox-inline">
-                    <input type="checkbox" name="is_active" value="true" {% if form_data.is_active %}checked{% endif %} />
-                    <span>Visible on site</span>
-                </label>
-                <label>
-                    Category
-                    <select name="category_id">
-                        <option value="">Unassigned</option>
-                        {% for category in categories %}
-                        <option value="{{ category.id_str }}" {% if form_data.category_id == category.id_str %}selected{% endif %}>{{ category.label }}</option>
-                        {% endfor %}
-                    </select>
+                    <textarea class="markdown-field" name="summary" rows="6" placeholder="Supports basic Markdown (links, bullets, bold/italics).">{{ form_data.summary }}</textarea>
+                    <p class="field-note">Use Markdown for quick formatting. Example: [link text](https://example.com) or bullet lists starting with "-".</p>
                 </label>
                 <section class="image-manager">
                     <header>

@@ -201,6 +201,12 @@ body.admin-body {
     justify-content: space-between;
 }
 
+.action-row {
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+}
+
 .admin-header h1 {
     margin: 0;
 }
@@ -239,11 +245,23 @@ body.admin-body {
     gap: 1.5rem;
 }
 
+.grid-2 {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 1rem;
+}
+
 .panel header {
     display: flex;
     align-items: center;
     justify-content: space-between;
     gap: 1rem;
+}
+
+.import-actions {
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
 }
 
 .table {
@@ -278,6 +296,11 @@ body.admin-body {
     background: rgba(56, 189, 248, 0.14);
     color: var(--text);
     font-size: 0.85rem;
+}
+
+.markdown-field {
+    font-family: ui-monospace, SFMono-Regular, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New",
+        monospace;
 }
 
 .two-column {

@@ -10,6 +10,9 @@ from fastapi.templating import Jinja2Templates
 from sqlalchemy import func, or_, select
 from sqlalchemy.orm import Session
 
+from markupsafe import Markup
+import markdown as md
+
 from app.core.config import get_settings
 from app.core.email import send_email
 from app.db.models import Category, Lead, Product, ProductImage, SiteMetric
@@ -18,6 +21,7 @@ from app.db.session import get_db
 
 templates = Jinja2Templates(directory="app/templates")
 templates.env.globals["now"] = datetime.utcnow
+templates.env.filters["markdown"] = lambda text: Markup(md.markdown(text or "", extensions=["extra", "sane_lists"]))
 
 router = APIRouter(tags=["Site"])
 logger = logging.getLogger("app.site")

@@ -1,0 +1,39 @@
+{% extends "admin/base.html" %}
+
+{% block layout %}
+<div class="admin-shell">
+    {% include "admin/partials/sidebar.html" %}
+    <main class="admin-content">
+        <header class="admin-header">
+            <h1>Import products</h1>
+            <a class="btn ghost" href="/admin/products">Back to list</a>
+        </header>
+        <section class="panel">
+            <header>
+                <div>
+                    <h2>Upload Excel file</h2>
+                    <p class="panel-subtitle">Use the template headers: Name, SKU, OEM Number, Category Path, Summary, Is Active.</p>
+                </div>
+                <div class="import-actions">
+                    <a class="btn ghost" href="/admin/products/import-template">Download template</a>
+                    <a class="btn ghost" href="/admin/products/export">Export current products</a>
+                </div>
+            </header>
+            {% if message %}
+            <div class="form-error" role="alert">{{ message }}</div>
+            {% endif %}
+            <form class="admin-form" method="post" action="/admin/products/import" enctype="multipart/form-data">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token }}" />
+                <label>
+                    Excel file (.xlsx)
+                    <input type="file" name="file" accept=".xlsx" required />
+                </label>
+                <p class="field-note">Images are not imported via Excel. Use the product editor to add images after import.</p>
+                <div class="form-actions">
+                    <button class="btn primary" type="submit">Import</button>
+                </div>
+            </form>
+        </section>
+    </main>
+</div>
+{% endblock %}
