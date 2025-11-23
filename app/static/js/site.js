@@ -100,7 +100,44 @@ const initCartMenu = () => {
     });
 };
 
+const initGallerySwitcher = () => {
+    const heroImage = document.querySelector('#hero-image');
+    const thumbs = document.querySelectorAll('.thumb-btn');
+    if (!heroImage || !thumbs.length) return;
+
+    thumbs.forEach((btn) => {
+        btn.addEventListener('click', () => {
+            const url = btn.getAttribute('data-full');
+            if (url) {
+                heroImage.src = url;
+            }
+        });
+    });
+};
+
+const initThemeToggle = () => {
+    const toggle = document.querySelector('[data-theme-toggle]');
+    if (!toggle) return;
+
+    const getStored = () => window.localStorage.getItem('site-theme');
+    const store = (value) => window.localStorage.setItem('site-theme', value);
+    const apply = (mode) => {
+        document.body.classList.toggle('theme-dark', mode === 'dark');
+    };
+
+    let current = getStored() || 'light';
+    apply(current);
+
+    toggle.addEventListener('click', () => {
+        current = current === 'dark' ? 'light' : 'dark';
+        apply(current);
+        store(current);
+    });
+};
+
 window.addEventListener('DOMContentLoaded', () => {
     initSlider();
     initCartMenu();
+    initGallerySwitcher();
+    initThemeToggle();
 });

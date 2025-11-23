@@ -19,7 +19,7 @@
     <div class="product-gallery">
         {% if product.primary_image %}
         <figure class="hero-image">
-            <img src="{{ product.primary_image.url }}" alt="{{ product.primary_image.alt }}" loading="lazy" />
+            <img id="hero-image" src="{{ product.primary_image.url }}" alt="{{ product.primary_image.alt }}" loading="lazy" />
         </figure>
         {% else %}
         <div class="placeholder-image tall"></div>
@@ -28,7 +28,9 @@
         <ul class="gallery-thumbs" aria-label="Gallery images">
             {% for image in product.images %}
             <li>
-                <img src="{{ image.url }}" alt="{{ image.alt }}" loading="lazy" />
+                <button class="thumb-btn" type="button" data-full="{{ image.url }}" aria-label="View {{ image.alt }}">
+                    <img src="{{ image.url }}" alt="{{ image.alt }}" loading="lazy" />
+                </button>
             </li>
             {% endfor %}
         </ul>

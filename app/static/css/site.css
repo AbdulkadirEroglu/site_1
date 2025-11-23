@@ -11,6 +11,17 @@
     font-family: "Inter", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
 }
 
+.theme-dark {
+    --background: #0f1729;
+    --surface: #111a2f;
+    --primary: #5c7cfa;
+    --primary-dark: #4a64d9;
+    --accent: #ff8aa3;
+    --text: #e8ecff;
+    --muted: #a2accb;
+    --border: #1e2a45;
+}
+
 .sr-only {
     position: absolute;
     width: 1px;
@@ -26,6 +37,10 @@ body.site-body {
     margin: 0;
     background: var(--background);
     color: var(--text);
+}
+
+body.theme-dark {
+    background: linear-gradient(180deg, #0b1120 0%, #0f1729 100%);
 }
 
 .muted {
@@ -106,6 +121,23 @@ body.site-body {
     display: flex;
     align-items: center;
     gap: 1rem;
+}
+
+.theme-toggle {
+    border: 1px solid var(--border);
+    background: transparent;
+    color: var(--text);
+    border-radius: 50%;
+    width: 36px;
+    height: 36px;
+    display: grid;
+    place-items: center;
+    cursor: pointer;
+}
+
+.theme-toggle:hover {
+    background: rgba(60, 90, 240, 0.12);
+    border-color: rgba(60, 90, 240, 0.5);
 }
 
 .cart-menu {
@@ -824,7 +856,7 @@ body.site-body {
 }
 
 .catalog-title h3 {
-    margin: 0;
+    margin: 5;
 }
 
 .catalog-title a {
@@ -916,12 +948,27 @@ body.site-body {
     border-radius: 12px;
     overflow: hidden;
     background: rgba(60, 90, 240, 0.06);
+    padding: 0;
 }
 
 .gallery-thumbs img {
     width: 100%;
     height: 100%;
     object-fit: cover;
+}
+
+.thumb-btn {
+    border: none;
+    padding: 0;
+    margin: 0;
+    width: 100%;
+    height: 100%;
+    background: transparent;
+    cursor: pointer;
+}
+
+.thumb-btn:focus-visible {
+    outline: 2px solid var(--primary);
 }
 
 .product-spec {

@@ -71,6 +71,71 @@ Notifications: if SMTP settings are provided, contact and quote requests will se
 
 Admin import/export: in the admin Products page you can download an Excel template, import products (name, SKU, OEM, category path, summary, active), and export current products as .xlsx. Images are still managed via the product editor.
 
+### Deploying to a server (example)
+
+Prereqs: Python 3.11+, PostgreSQL reachable, and a process manager (systemd shown below).
+
+1) Copy the project to the server and set up a virtualenv:
+```bash
+python -m venv /opt/novacommerce/.venv
+source /opt/novacommerce/.venv/bin/activate
+pip install -r /opt/novacommerce/requirements.txt
+```
+
+2) Configure environment (`/opt/novacommerce/.env`) with `DATABASE_URL`, `SECRET_KEY`, SMTP settings, etc.
+
+3) Run migrations and bootstrap:
+```bash
+cd /opt/novacommerce
+alembic upgrade head
+python scripts/bootstrap.py --uname admin@example.com --full-name "Site Admin"
+```
+
+4) Create a systemd unit (`/etc/systemd/system/novacommerce.service`):
+```
+[Unit]
+Description=NovaCommerce FastAPI app
+After=network.target
+
+[Service]
+User=www-data
+WorkingDirectory=/opt/novacommerce
+EnvironmentFile=/opt/novacommerce/.env
+ExecStart=/opt/novacommerce/.venv/bin/uvicorn app.main:app --host 0.0.0.0 --port 8000
+Restart=always
+
+[Install]
+WantedBy=multi-user.target
+```
+
+5) Start and enable:
+```bash
+sudo systemctl daemon-reload
+sudo systemctl enable --now novacommerce
+```
+
+6) Put Nginx (or your preferred proxy) in front to serve TLS and proxy to `localhost:8000`. Example Nginx server block:
+```
+server {
+    listen 80;
+    server_name yourdomain.com;
+
+    location /static/ {
+        alias /opt/novacommerce/app/static/;
+    }
+
+    location / {
+        proxy_pass http://127.0.0.1:8000;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+    }
+}
+```
+
+7) Health check: GET `/health` should return `{"status": "ok"}`. Add it to your monitoring.
+
 ## Project structure
 
 ```
@@ -97,7 +162,6 @@ requirements.txt
 - Product management workflows (including image uploads, sorting, and recent-activity summaries) are live in the admin area.
 
 ### Needs work
-- Production runbook, process manager guidance, and `/health` monitoring notes are still missing from the docs.
 - Automated tests/CI have not been set up, so schema changes and regressions are risky.
 - A documented manual admin credential recovery process still needs to be resolved.
 - Catalog UX gaps remain: expose `is_active` toggles and deletion redirects, wire the homepage hero search, make catalog filters interactive, and actually deliver contact form submissions.
