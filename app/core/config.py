@@ -18,6 +18,13 @@ class Settings(BaseSettings):
     log_level: str = Field(default="INFO", env="LOG_LEVEL")
     login_rate_limit_window_seconds: int = Field(default=300, env="LOGIN_RATE_LIMIT_WINDOW_SECONDS")
     login_rate_limit_max_attempts: int = Field(default=5, env="LOGIN_RATE_LIMIT_MAX_ATTEMPTS")
+    smtp_host: str | None = Field(default=None, env="SMTP_HOST")
+    smtp_port: int = Field(default=587, env="SMTP_PORT")
+    smtp_username: str | None = Field(default=None, env="SMTP_USERNAME")
+    smtp_password: str | None = Field(default=None, env="SMTP_PASSWORD")
+    smtp_sender: str | None = Field(default=None, env="SMTP_SENDER")
+    smtp_use_tls: bool = Field(default=True, env="SMTP_USE_TLS")
+    notification_email: str | None = Field(default=None, env="NOTIFICATION_EMAIL")
 
     @model_validator(mode="after")
     def validate_security(self) -> "Settings":

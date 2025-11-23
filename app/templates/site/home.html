@@ -5,19 +5,26 @@
     <div class="container hero-inner">
         <div class="hero-copy">
             <p class="eyebrow">SVS AUTOMOTIVE</p>
-            <h1>Automotive Spare Parts</h1>
-            <p>For the protection of products that are not in our wide product range, please contact us. We source and deliver OEM-certified parts for heavy-duty machinery.</p>
-            <form class="hero-search" role="search">
+            <h1>OEM-grade parts ready for quoting</h1>
+            <p>Find the exact assemblies, kits, and consumables your equipment needs. Search by part name, SKU, or OEM reference and build a quote cart in one click.</p>
+            <form class="hero-search" role="search" method="get" action="/catalog">
                 <label for="hero-search" class="sr-only">Search product catalog</label>
-                <input id="hero-search" type="search" placeholder="Product code, OEM number, part name..." />
-                <button type="submit" class="btn primary">Search product</button>
+                <input id="hero-search" name="q" type="search" placeholder="Product code, OEM number, part name..." />
+                <button type="submit" class="btn primary">Search catalog</button>
             </form>
+            {% if popular_products %}
+            <div class="hero-pills" aria-label="Popular products">
+                {% for product in popular_products[:3] %}
+                <a class="pill" href="/products/{{ product.id }}">Popular: {{ product.name }}</a>
+                {% endfor %}
+            </div>
+            {% endif %}
         </div>
         <div class="hero-visual" aria-hidden="true">
             <div class="hero-visual-inner">
                 <div class="hero-circle"></div>
                 <div class="hero-badge">OEM certified</div>
-                <div class="hero-badge badge-secondary">Global supply</div>
+                <div class="hero-badge badge-secondary">Quote ready</div>
             </div>
         </div>
     </div>
@@ -25,50 +32,16 @@
 {% endblock %}
 
 {% block content %}
-<section class="recent-products" data-slider>
-    <div class="slider-header">
-        <div>
-            <p class="eyebrow">Recently added</p>
-            <h2>Highlighted spare parts</h2>
-        </div>
-        <div class="slider-controls" aria-label="Slider controls">
-            <button type="button" class="slider-btn" data-action="prev" aria-label="Previous part">
-                <span aria-hidden="true">&#8592;</span>
-            </button>
-            <button type="button" class="slider-btn" data-action="next" aria-label="Next part">
-                <span aria-hidden="true">&#8594;</span>
-            </button>
-        </div>
-    </div>
-    <div class="slider-window">
-        {% if recent_products %}
-            {% for product in recent_products %}
-            <article class="product-slide {% if loop.first %}is-active{% endif %}" data-slide>
-                <h3>{{ product.name }}</h3>
-                <p class="slide-meta">OEM {{ product.oem_number }} · Part {{ product.sku }}</p>
-                <p class="slide-description">{{ product.summary or "No description available." }}</p>
-            </article>
-            {% endfor %}
-        {% else %}
-        <article class="product-slide is-active" data-slide>
-            <h3>Catalog is warming up</h3>
-            <p class="slide-meta">No live products yet</p>
-            <p class="slide-description">Add products in the admin area to see them featured here.</p>
-        </article>
-        {% endif %}
-    </div>
-</section>
-
-<section class="featured-products">
+<section class="featured-products product-section">
     <header class="featured-header">
         <div>
-            <p class="eyebrow">Explore the catalog</p>
+            <p class="eyebrow">Most requested</p>
             <h2>Popular spare parts</h2>
         </div>
         <a class="btn secondary" href="/catalog">View full catalog</a>
     </header>
     <div class="featured-grid">
-        {% for product in featured_products %}
+        {% for product in popular_products %}
         <article class="featured-card">
             {% if product.primary_image %}
             <figure class="featured-image">
@@ -80,12 +53,67 @@
             <div class="featured-content">
                 <h3>{{ product.name }}</h3>
                 <p class="catalog-meta">OEM {{ product.oem_number }} · Part {{ product.sku }}</p>
+                {% if product.category %}
+                <p class="mini muted">Category · {{ product.category }}</p>
+                {% endif %}
                 <p>{{ product.summary or "Details coming soon." }}</p>
+                <div class="card-actions">
+                    <a class="btn ghost" href="/products/{{ product.id }}">View details</a>
+                    <form method="post" action="/cart/add">
+                        <input type="hidden" name="product_id" value="{{ product.id }}" />
+                        <input type="hidden" name="redirect_to" value="{{ request.url.path }}" />
+                        <button class="btn primary" type="submit">Add to cart</button>
+                    </form>
+                </div>
             </div>
         </article>
         {% else %}
         <p class="empty-state">Add products to the catalog to showcase them on the homepage.</p>
         {% endfor %}
+    </div>
+</section>
+
+<section class="recent-products rail" data-slider>
+    <div class="slider-header">
+        <div>
+            <p class="eyebrow">New arrivals</p>
+            <h2>Freshly added parts</h2>
+        </div>
+        <div class="slider-controls" aria-label="Slider controls">
+            <button type="button" class="slider-btn" data-action="prev" aria-label="Previous part">
+                <span aria-hidden="true">&#8592;</span>
+            </button>
+            <button type="button" class="slider-btn" data-action="next" aria-label="Next part">
+                <span aria-hidden="true">&#8594;</span>
+            </button>
+        </div>
+    </div>
+    <div class="slider-window">
+        {% if new_products %}
+            {% for product in new_products %}
+            <article class="product-slide {% if loop.first %}is-active{% endif %}" data-slide>
+                <div class="slide-top">
+                    <div>
+                        <p class="slide-meta">OEM {{ product.oem_number }} · Part {{ product.sku }}</p>
+                        <h3>{{ product.name }}</h3>
+                    </div>
+                    <a class="mini" href="/products/{{ product.id }}">Full details</a>
+                </div>
+                <p class="slide-description">{{ product.summary or "No description available." }}</p>
+                <form method="post" action="/cart/add">
+                    <input type="hidden" name="product_id" value="{{ product.id }}" />
+                    <input type="hidden" name="redirect_to" value="{{ request.url.path }}" />
+                    <button class="btn primary" type="submit">Add to cart</button>
+                </form>
+            </article>
+            {% endfor %}
+        {% else %}
+        <article class="product-slide is-active" data-slide>
+            <h3>Catalog is warming up</h3>
+            <p class="slide-meta">No live products yet</p>
+            <p class="slide-description">Add products in the admin area to see them featured here.</p>
+        </article>
+        {% endif %}
     </div>
 </section>
 

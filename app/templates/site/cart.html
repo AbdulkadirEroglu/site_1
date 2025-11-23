@@ -1,0 +1,81 @@
+{% extends "site/base.html" %}
+
+{% block content %}
+<section class="page-header">
+    <h1>Quote cart</h1>
+    <p>Review the products you've selected and send a quote request. We'll respond with pricing, lead times, and availability.</p>
+</section>
+
+<section class="cart-layout">
+    <div class="cart-review">
+        <div class="cart-header">
+            <h2>Products ({{ cart.total_items }})</h2>
+            {% if cart.has_items %}
+            <form method="post" action="/cart/clear">
+                <input type="hidden" name="redirect_to" value="{{ request.url.path }}" />
+                <button class="btn ghost" type="submit">Clear cart</button>
+            </form>
+            {% endif %}
+        </div>
+        {% if cart.has_items %}
+        <ul class="cart-list">
+            {% for item in cart["items"] %}
+            <li class="cart-line">
+                <div class="cart-line-main">
+                    <h3>{{ item.name }}</h3>
+                    <p class="catalog-meta">OEM {{ item.oem_number }} · Part {{ item.sku }}</p>
+                    {% if item.category %}
+                    <p class="mini muted">{{ item.category }}</p>
+                    {% endif %}
+                </div>
+                <div class="cart-line-actions">
+                    <span class="pill">Qty {{ item.quantity }}</span>
+                    <form method="post" action="/cart/remove">
+                        <input type="hidden" name="product_id" value="{{ item.id }}" />
+                        <input type="hidden" name="redirect_to" value="{{ request.url.path }}" />
+                        <button class="btn ghost" type="submit">Remove</button>
+                    </form>
+                </div>
+            </li>
+            {% endfor %}
+        </ul>
+        {% else %}
+        <div class="empty-state">
+            <p>No products in the cart yet. Browse the catalog to add parts to your quote.</p>
+            <a class="btn primary" href="/catalog">Browse catalog</a>
+        </div>
+        {% endif %}
+    </div>
+    <div class="quote-panel">
+        <h2>Request a quote</h2>
+        {% if submitted %}
+        <div class="success-card">
+            <p class="eyebrow">Submitted</p>
+            <p>Thanks for your request. Our team will reach out shortly with pricing and timelines.</p>
+        </div>
+        {% endif %}
+        <form class="quote-form" method="post" action="/cart/request-quote">
+            <label>
+                Full name
+                <input name="full_name" type="text" required />
+            </label>
+            <label>
+                Email
+                <input name="email" type="email" required />
+            </label>
+            <label>
+                Company (optional)
+                <input name="company" type="text" />
+            </label>
+            <label>
+                Notes
+                <textarea name="notes" rows="4" placeholder="Add delivery needs, quantities, or equipment details"></textarea>
+            </label>
+            <button class="btn primary" type="submit" {% if not cart.has_items %}disabled aria-disabled="true"{% endif %}>Submit quote</button>
+            {% if not cart.has_items %}
+            <p class="mini muted">Add at least one product to submit a quote.</p>
+            {% endif %}
+        </form>
+    </div>
+</section>
+{% endblock %}

@@ -19,6 +19,8 @@ class Category(Base, TimestampMixin):
     is_active = Column(Boolean, default=True, nullable=False)
     level = Column(Integer, nullable=False, default=0)
     order = Column(Integer, nullable=False, default=0)
+    view_count = Column(Integer, nullable=False, default=0)
+    cart_add_count = Column(Integer, nullable=False, default=0)
     parent_id = Column(Integer, ForeignKey("categories.id", ondelete="SET NULL"), nullable=True)
     parent = relationship(
         "Category",
@@ -38,6 +40,8 @@ class Product(Base, TimestampMixin):
     oem_number = Column(String(60), nullable=False, unique=True)
     summary = Column(Text, nullable=True)
     is_active = Column(Boolean, default=True, nullable=False)
+    view_count = Column(Integer, nullable=False, default=0)
+    cart_add_count = Column(Integer, nullable=False, default=0)
 
     category = relationship("Category", back_populates="products")
     images = relationship("ProductImage", back_populates="product", cascade="all, delete-orphan")
@@ -63,3 +67,23 @@ class ProductImage(Base, TimestampMixin):
     sort_order = Column(Integer, nullable=False, default=0)
 
     product = relationship("Product", back_populates="images")
+
+
+class SiteMetric(Base, TimestampMixin):
+    __tablename__ = "site_metrics"
+
+    id = Column(Integer, primary_key=True, index=True)
+    key = Column(String(120), nullable=False, unique=True)
+    value = Column(Integer, nullable=False, default=0)
+
+
+class Lead(Base, TimestampMixin):
+    __tablename__ = "leads"
+
+    id = Column(Integer, primary_key=True, index=True)
+    kind = Column(String(50), nullable=False)  # e.g., contact or quote
+    full_name = Column(String(160), nullable=True)
+    email = Column(String(255), nullable=True)
+    company = Column(String(255), nullable=True)
+    message = Column(Text, nullable=True)
+    payload = Column(Text, nullable=True)  # optional JSON blob for cart items or metadata

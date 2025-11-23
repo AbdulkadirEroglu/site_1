@@ -7,18 +7,28 @@
 </section>
 <section class="two-column contact">
     <article>
-        <form class="contact-form">
+        {% if submitted %}
+        <div class="success-card">
+            <p class="eyebrow">Thanks for reaching out</p>
+            <p class="muted">We received your message and will respond shortly.</p>
+        </div>
+        {% endif %}
+        <form class="contact-form" method="post" action="/contact">
             <label>
                 Name
-                <input type="text" placeholder="Ada Lovelace" />
+                <input name="name" type="text" placeholder="Ada Lovelace" required />
             </label>
             <label>
                 Email
-                <input type="email" placeholder="ada@example.com" />
+                <input name="email" type="email" placeholder="ada@example.com" required />
+            </label>
+            <label>
+                Company (optional)
+                <input name="company" type="text" placeholder="Novacommerce Inc" />
             </label>
             <label>
                 How can we help?
-                <textarea rows="5" placeholder="Share a quick summary of your project..."></textarea>
+                <textarea name="message" rows="5" placeholder="Share a quick summary of your project..." required></textarea>
             </label>
             <button type="submit" class="btn primary">Send message</button>
         </form>

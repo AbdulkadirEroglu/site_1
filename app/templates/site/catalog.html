@@ -39,16 +39,20 @@
         <div class="catalog-grid">
             {% for product in products %}
             <article class="catalog-card">
-                {% if product.primary_image %}
-                <figure class="catalog-image">
-                    <img src="{{ product.primary_image.url }}" alt="{{ product.primary_image.alt }}" loading="lazy" />
-                </figure>
-                {% else %}
-                <div class="placeholder-image"></div>
-                {% endif %}
+                <a href="/products/{{ product.id }}" class="catalog-card-link" aria-label="View {{ product.name }} details">
+                    {% if product.primary_image %}
+                    <figure class="catalog-image">
+                        <img src="{{ product.primary_image.url }}" alt="{{ product.primary_image.alt }}" loading="lazy" />
+                    </figure>
+                    {% else %}
+                    <div class="placeholder-image"></div>
+                    {% endif %}
+                </a>
                 <div class="catalog-card-content">
-                    <h3>{{ product.name }}</h3>
-                    <p class="catalog-meta">OEM {{ product.oem_number }} · Part {{ product.sku }}</p>
+                    <div class="catalog-title">
+                        <h3><a href="/products/{{ product.id }}">{{ product.name }}</a></h3>
+                        <p class="catalog-meta">OEM {{ product.oem_number }} · Part {{ product.sku }}</p>
+                    </div>
                     {% if product.category %}
                     <p class="catalog-meta">Category · {{ product.category }}</p>
                     {% endif %}
@@ -62,6 +66,14 @@
                         {% endfor %}
                     </ul>
                     {% endif %}
+                    <div class="card-actions">
+                        <a class="btn ghost" href="/products/{{ product.id }}">View details</a>
+                        <form method="post" action="/cart/add">
+                            <input type="hidden" name="product_id" value="{{ product.id }}" />
+                            <input type="hidden" name="redirect_to" value="{{ request.url }}" />
+                            <button class="btn primary" type="submit">Add to cart</button>
+                        </form>
+                    </div>
                 </div>
             </article>
             {% endfor %}

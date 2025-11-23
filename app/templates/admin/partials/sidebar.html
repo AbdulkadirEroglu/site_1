@@ -10,6 +10,7 @@
         <a href="/admin/dashboard" class="nav-link {% if page == 'dashboard' %}is-active{% endif %}">Dashboard</a>
         <a href="/admin/products" class="nav-link {% if page == 'products' %}is-active{% endif %}">Products</a>
         <a href="/admin/categories" class="nav-link {% if page == 'categories' %}is-active{% endif %}">Categories</a>
+        <a href="/admin/leads" class="nav-link {% if page == 'leads' %}is-active{% endif %}">Leads</a>
     </nav>
     <form method="post" action="/admin/logout">
         <input type="hidden" name="csrf_token" value="{{ csrf_token }}" />

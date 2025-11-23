@@ -24,6 +24,72 @@
         </section>
         <section class="panel">
             <header>
+                <h2>Site analytics</h2>
+                <p class="muted">Aggregated from product views and cart adds across the public site.</p>
+            </header>
+            <div class="stats-grid">
+                <article>
+                    <span class="label">Site visits</span>
+                    <span class="metric">{{ analytics.site_visits }}</span>
+                </article>
+                <article>
+                    <span class="label">Product views</span>
+                    <span class="metric">{{ analytics.product_views }}</span>
+                </article>
+                <article>
+                    <span class="label">Cart additions</span>
+                    <span class="metric">{{ analytics.cart_adds }}</span>
+                </article>
+                <article>
+                    <span class="label">Views per visit</span>
+                    <span class="metric">{{ analytics.views_per_visit }}</span>
+                </article>
+                <article>
+                    <span class="label">Cart adds per visit</span>
+                    <span class="metric">{{ analytics.cart_adds_per_visit }}</span>
+                </article>
+            </div>
+            <div class="two-column">
+                <div>
+                    <h3>Top products</h3>
+                    {% if analytics.top_products %}
+                    <ul class="activity-list">
+                        {% for product in analytics.top_products %}
+                        <li>
+                            <span class="dot"></span>
+                            <div>
+                                <strong>{{ product.name }}</strong>
+                                <div class="activity-meta">{{ product.view_count }} views · {{ product.cart_add_count }} cart adds</div>
+                            </div>
+                        </li>
+                        {% endfor %}
+                    </ul>
+                    {% else %}
+                    <p class="empty-state">No product views yet.</p>
+                    {% endif %}
+                </div>
+                <div>
+                    <h3>Top categories</h3>
+                    {% if analytics.top_categories %}
+                    <ul class="activity-list">
+                        {% for category in analytics.top_categories %}
+                        <li>
+                            <span class="dot"></span>
+                            <div>
+                                <strong>{{ category.name }}</strong>
+                                <div class="activity-meta">{{ category.view_count }} views · {{ category.cart_add_count }} cart adds</div>
+                            </div>
+                        </li>
+                        {% endfor %}
+                    </ul>
+                    {% else %}
+                    <p class="empty-state">No category views yet.</p>
+                    {% endif %}
+                </div>
+            </div>
+        </section>
+        <section class="panel">
+            <header>
                 <h2>Latest updates</h2>
                 <a href="/admin/products">View all</a>
             </header>

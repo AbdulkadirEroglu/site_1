@@ -1,6 +1,8 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
 from fastapi.staticfiles import StaticFiles
 from starlette.middleware.sessions import SessionMiddleware
+from starlette.responses import TemplateResponse
+from starlette.exceptions import HTTPException as StarletteHTTPException
 
 from app.core.config import get_settings
 from app.core.logging import configure_logging
@@ -28,3 +30,10 @@ app.include_router(admin.router)
 @app.get("/health", tags=["System"])
 def health_check():
     return {"status": "ok"}
+
+
+@app.exception_handler(StarletteHTTPException)
+async def http_exception_handler(request: Request, exc: StarletteHTTPException):
+    if exc.status_code == 404:
+        return TemplateResponse("site/404.html", {"request": request, "page": "404"}, status_code=404)
+    raise exc

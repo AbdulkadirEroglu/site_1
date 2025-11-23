@@ -1,0 +1,39 @@
+{% extends "admin/base.html" %}
+
+{% block layout %}
+<div class="admin-shell">
+    {% include "admin/partials/sidebar.html" %}
+    <main class="admin-content">
+        <header class="admin-header">
+            <h1>Leads</h1>
+            <span class="muted">Latest 100 contact and quote submissions</span>
+        </header>
+        <section class="panel">
+            {% if leads %}
+            <div class="table">
+                <div class="table-head">
+                    <span>Type</span>
+                    <span>Name</span>
+                    <span>Email</span>
+                    <span>Company</span>
+                    <span>Message</span>
+                    <span>Received</span>
+                </div>
+                {% for lead in leads %}
+                <div class="table-row">
+                    <span class="pill small">{{ lead.kind }}</span>
+                    <span>{{ lead.full_name or "—" }}</span>
+                    <span>{{ lead.email or "—" }}</span>
+                    <span>{{ lead.company or "—" }}</span>
+                    <span class="muted">{{ lead.message or "—" }}</span>
+                    <span class="muted">{{ lead.created_at.strftime("%b %d, %Y %H:%M") if lead.created_at else "" }}</span>
+                </div>
+                {% endfor %}
+            </div>
+            {% else %}
+            <p class="empty-state">No leads yet.</p>
+            {% endif %}
+        </section>
+    </main>
+</div>
+{% endblock %}

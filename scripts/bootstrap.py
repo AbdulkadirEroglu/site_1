@@ -1,7 +1,7 @@
-"""Utility script to initialize the database schema and seed an admin user.
+"""Utility script to initialize or migrate the database schema and seed an admin user.
 
-Run once per environment, after configuring your .env, e.g.:
-    python scripts/bootstrap.py --email admin@example.com --full-name "Site Admin"
+Run any time after configuring your .env, e.g.:
+    python scripts/bootstrap.py --uname admin@example.com --full-name "Site Admin"
 
 You will be prompted for a password if --password is not supplied.
 """
@@ -9,9 +9,16 @@ You will be prompted for a password if --password is not supplied.
 from __future__ import annotations
 
 import argparse
+import sys
+from pathlib import Path
 from getpass import getpass
 
-from sqlalchemy import select
+from sqlalchemy import inspect, select, text
+
+# Ensure the project root is on sys.path so `app` imports resolve
+ROOT_DIR = Path(__file__).resolve().parents[1]
+if str(ROOT_DIR) not in sys.path:
+    sys.path.insert(0, str(ROOT_DIR))
 
 from app.core.config import get_settings
 from app.core.security import hash_password
@@ -22,6 +29,38 @@ from app.db.session import SessionLocal, database_engine
 def create_tables() -> None:
     """Create all database tables defined on the metadata."""
     Base.metadata.create_all(bind=database_engine)
+
+
+def apply_schema_migrations() -> None:
+    """Apply lightweight, idempotent migrations for existing databases."""
+    # Ensure any new tables defined in models are created without altering existing ones.
+    Base.metadata.create_all(bind=database_engine, checkfirst=True)
+
+    inspector = inspect(database_engine)
+
+    def add_column_if_missing(table: str, column: str, ddl: str) -> None:
+        column_names = {col["name"] for col in inspector.get_columns(table)}
+        if column in column_names:
+            return
+        dialect = database_engine.dialect.name
+        # SQLite does not support IF NOT EXISTS for columns prior to 3.35; keep syntax simple.
+        if dialect == "sqlite":
+            stmt = f'ALTER TABLE "{table}" ADD COLUMN {column} {ddl};'
+        else:
+            stmt = f"ALTER TABLE {table} ADD COLUMN IF NOT EXISTS {column} {ddl};"
+        with database_engine.begin() as conn:
+            conn.execute(text(stmt))
+        print(f"Added column {column} to {table}.")
+
+    if "products" in inspector.get_table_names():
+        add_column_if_missing("products", "view_count", "INTEGER NOT NULL DEFAULT 0")
+        add_column_if_missing("products", "cart_add_count", "INTEGER NOT NULL DEFAULT 0")
+
+    if "categories" in inspector.get_table_names():
+        add_column_if_missing("categories", "view_count", "INTEGER NOT NULL DEFAULT 0")
+        add_column_if_missing("categories", "cart_add_count", "INTEGER NOT NULL DEFAULT 0")
+
+    # Site metrics table will be created by Base.metadata.create_all if missing; nothing to alter here.
 
 
 def ensure_admin_user(uname: str, password: str | None, name: str | None) -> tuple[AdminUser, bool]:
@@ -88,6 +127,10 @@ def main() -> int:
         print("Tables ensured.")
     else:
         print("Skipping table creation.")
+
+    print("Applying schema migrations (idempotent)...")
+    apply_schema_migrations()
+    print("Migrations complete.")
 
     password = args.password
     if password is None:

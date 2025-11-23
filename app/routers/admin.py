@@ -16,7 +16,7 @@ from app.core.config import get_settings
 from app.core.csrf import ensure_csrf_token, validate_csrf_token
 from app.core.rate_limit import RateLimiter
 from app.core.security import verify_password
-from app.db.models import AdminUser, Category, Product, ProductImage
+from app.db.models import AdminUser, Category, Lead, Product, ProductImage, SiteMetric
 from app.db.session import get_db
 
 templates = Jinja2Templates(directory="app/templates")
@@ -243,6 +243,11 @@ def _category_tree_with_stats(db: Session) -> list[dict[str, Any]]:
     return ordered
 
 
+def _get_metric(db: Session, key: str) -> int:
+    metric = db.scalar(select(SiteMetric).where(SiteMetric.key == key))
+    return metric.value if metric else 0
+
+
 def _render_categories_page(
     request: Request,
     admin: AdminUser,
@@ -372,6 +377,24 @@ def dashboard(request: Request, db: Session = Depends(get_db)):
     inactive_products = db.scalar(select(func.count(Product.id)).where(Product.is_active.is_(False))) or 0
     category_count = db.scalar(select(func.count(Category.id))) or 0
 
+    site_visits = _get_metric(db, "site_visits")
+    product_views = _get_metric(db, "site_product_views")
+    cart_adds = _get_metric(db, "site_cart_adds")
+    rate = lambda numerator, denominator: round(numerator / denominator, 2) if denominator else 0
+
+    top_products = db.execute(
+        select(Product.name, Product.view_count, Product.cart_add_count)
+        .where(Product.is_active.is_(True))
+        .order_by(Product.view_count.desc(), Product.cart_add_count.desc(), Product.created_at.desc())
+        .limit(5)
+    ).all()
+    top_categories = db.execute(
+        select(Category.name, Category.slug, Category.view_count, Category.cart_add_count)
+        .where(Category.is_active.is_(True))
+        .order_by(Category.view_count.desc(), Category.cart_add_count.desc(), Category.name.asc())
+        .limit(5)
+    ).all()
+
     recent_rows = db.execute(
         select(
             Product.name,
@@ -404,6 +427,15 @@ def dashboard(request: Request, db: Session = Depends(get_db)):
                     "live_products": live_products,
                     "inactive_products": inactive_products,
                     "categories": category_count,
+                },
+                "analytics": {
+                    "site_visits": site_visits,
+                    "product_views": product_views,
+                    "cart_adds": cart_adds,
+                    "views_per_visit": rate(product_views, site_visits),
+                    "cart_adds_per_visit": rate(cart_adds, site_visits),
+                    "top_products": top_products,
+                    "top_categories": top_categories,
                 },
                 "activities": activities,
             },
@@ -477,6 +509,44 @@ def manage_products(
                 "admin": admin,
                 "products": products,
                 "search_term": search_term,
+            },
+        ),
+    )
+
+
+@router.get("/leads", response_class=HTMLResponse)
+def leads(request: Request, db: Session = Depends(get_db)):
+    admin = _ensure_admin(request, db)
+    if not admin:
+        return RedirectResponse(url="/admin/login", status_code=status.HTTP_303_SEE_OTHER)
+
+    leads_rows = db.execute(
+        select(Lead)
+        .order_by(Lead.created_at.desc())
+        .limit(100)
+    ).scalars().all()
+
+    leads = [
+        {
+            "id": lead.id,
+            "kind": lead.kind,
+            "full_name": lead.full_name,
+            "email": lead.email,
+            "company": lead.company,
+            "message": lead.message,
+            "created_at": lead.created_at,
+        }
+        for lead in leads_rows
+    ]
+
+    return templates.TemplateResponse(
+        "admin/leads.html",
+        _build_context(
+            request,
+            {
+                "page": "leads",
+                "admin": admin,
+                "leads": leads,
             },
         ),
     )

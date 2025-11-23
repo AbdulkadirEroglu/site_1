@@ -1,0 +1,114 @@
+{% extends "site/base.html" %}
+
+{% block content %}
+<section class="page-header product-hero">
+    <p class="eyebrow">Product detail</p>
+    <h1>{{ product.name }}</h1>
+    <p class="muted">OEM {{ product.oem_number }} · Part {{ product.sku }}</p>
+    <div class="product-tags">
+        {% if product.category %}
+        <span class="pill">Category · {{ product.category }}</span>
+        {% endif %}
+        {% if product.created_at %}
+        <span class="pill muted">Added {{ product.created_at.strftime("%b %d, %Y") }}</span>
+        {% endif %}
+    </div>
+    <div class="product-actions">
+        <form method="post" action="/cart/add">
+            <input type="hidden" name="product_id" value="{{ product.id }}" />
+            <input type="hidden" name="redirect_to" value="{{ request.url.path }}" />
+            <button class="btn primary" type="submit">Add to cart</button>
+        </form>
+        <a class="btn secondary" href="/cart">Request a quote</a>
+        <a class="btn ghost" href="/catalog">Back to catalog</a>
+    </div>
+</section>
+
+<section class="product-layout">
+    <div class="product-gallery">
+        {% if product.primary_image %}
+        <figure class="hero-image">
+            <img src="{{ product.primary_image.url }}" alt="{{ product.primary_image.alt }}" loading="lazy" />
+        </figure>
+        {% else %}
+        <div class="placeholder-image tall"></div>
+        {% endif %}
+        {% if product.images|length > 1 %}
+        <ul class="gallery-thumbs" aria-label="Gallery images">
+            {% for image in product.images %}
+            <li>
+                <img src="{{ image.url }}" alt="{{ image.alt }}" loading="lazy" />
+            </li>
+            {% endfor %}
+        </ul>
+        {% endif %}
+    </div>
+    <div class="product-spec">
+        <h2>Product overview</h2>
+        <p>{{ product.summary or "A detailed description will be provided soon. Contact us if you need specs or compatibility details right away." }}</p>
+        <dl class="spec-grid">
+            <div>
+                <dt>OEM reference</dt>
+                <dd>{{ product.oem_number }}</dd>
+            </div>
+            <div>
+                <dt>SKU</dt>
+                <dd>{{ product.sku }}</dd>
+            </div>
+            <div>
+                <dt>Category</dt>
+                <dd>{{ product.category or "Uncategorized" }}</dd>
+            </div>
+        </dl>
+        <div class="quote-card">
+            <div>
+                <p class="eyebrow">Need a quote?</p>
+                <p class="muted">Add this part to your cart and submit your quote request with a few details. We will follow up with availability and lead times.</p>
+            </div>
+            <form method="post" action="/cart/add">
+                <input type="hidden" name="product_id" value="{{ product.id }}" />
+                <input type="hidden" name="redirect_to" value="{{ request.url.path }}" />
+                <button class="btn primary" type="submit">Add to cart</button>
+            </form>
+        </div>
+    </div>
+</section>
+
+{% if related_products %}
+<section class="featured-products product-section">
+    <header class="featured-header">
+        <div>
+            <p class="eyebrow">You may also like</p>
+            <h2>Related products</h2>
+        </div>
+        <a class="btn secondary" href="/catalog">View catalog</a>
+    </header>
+    <div class="featured-grid">
+        {% for product in related_products %}
+        <article class="featured-card">
+            {% if product.primary_image %}
+            <figure class="featured-image">
+                <img src="{{ product.primary_image.url }}" alt="{{ product.primary_image.alt }}" loading="lazy" />
+            </figure>
+            {% else %}
+            <div class="placeholder-image"></div>
+            {% endif %}
+            <div class="featured-content">
+                <h3>{{ product.name }}</h3>
+                <p class="catalog-meta">OEM {{ product.oem_number }} · Part {{ product.sku }}</p>
+                <p>{{ product.summary or "Details coming soon." }}</p>
+                <div class="card-actions">
+                    <a class="btn ghost" href="/products/{{ product.id }}">View details</a>
+                    <form method="post" action="/cart/add">
+                        <input type="hidden" name="product_id" value="{{ product.id }}" />
+                        <input type="hidden" name="redirect_to" value="{{ request.url.path }}" />
+                        <button class="btn primary" type="submit">Add to cart</button>
+                    </form>
+                </div>
+            </div>
+        </article>
+        {% endfor %}
+    </div>
+</section>
+{% endif %}
+{% endblock %}
