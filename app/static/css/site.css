@@ -663,6 +663,73 @@ body.theme-dark {
     box-shadow: 0 10px 24px -18px rgba(18, 29, 87, 0.35);
 }
 
+.about-hero {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: 2rem;
+    align-items: center;
+    background: linear-gradient(135deg, rgba(60, 90, 240, 0.08), rgba(255, 255, 255, 0.95));
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 2rem;
+    margin-bottom: 2rem;
+}
+
+.about-hero h1 {
+    margin: 0 0 0.75rem;
+}
+
+.about-hero-copy p {
+    margin: 0 0 1rem;
+}
+
+.about-hero-visual {
+    display: grid;
+    place-items: center;
+}
+
+.about-hero-image {
+    width: 100%;
+    max-width: 420px;
+    aspect-ratio: 4 / 3;
+    background: url("/static/img/tractor-edited.png") center/contain no-repeat;
+    border-radius: var(--radius);
+    border: 1px solid var(--border);
+    box-shadow: 0 18px 40px -32px rgba(18, 29, 87, 0.4);
+    background-color: #fff;
+}
+
+.about-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 1rem;
+    margin-bottom: 2rem;
+}
+
+.legal-card {
+    background: var(--surface);
+    border-radius: var(--radius);
+    border: 1px solid var(--border);
+    padding: 1.5rem;
+    box-shadow: 0 10px 24px -18px rgba(18, 29, 87, 0.3);
+}
+
+.legal-card dl {
+    margin: 0;
+    display: grid;
+    gap: 0.75rem;
+}
+
+.legal-card dt {
+    font-weight: 700;
+    color: var(--text);
+}
+
+.legal-card dd {
+    margin: 0;
+    color: var(--muted);
+}
+
 .contact-form {
     display: grid;
     gap: 1rem;

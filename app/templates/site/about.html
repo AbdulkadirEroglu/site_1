@@ -1,22 +1,55 @@
 {% extends "site/base.html" %}
 
 {% block content %}
-<section class="page-header">
-    <h1>About NovaCommerce</h1>
-    <p>We blend modern technology and thoughtful design to help retailers launch adaptive product experiences in weeks, not months.</p>
+<section class="about-hero">
+    <div class="about-hero-copy">
+        <p class="eyebrow">SVS Automotive</p>
+        <h1>Your Favorite Parts Supplier.</h1>
+        <p class="muted">With over 10+ years of experience, SVS Automotive Industries offers a broad range of products for passenger vehicles, trucks, and tractors. Based in Konya, Turkey, we invest continuously to serve customers with reliable quality and service.</p>
+    </div>
+    <div class="about-hero-visual" aria-hidden="true">
+        <div class="about-hero-image"></div>
+    </div>
 </section>
-<section class="two-column">
-    <article>
-        <h2>Our mission</h2>
-        <p>Empower merchants with tooling that puts shoppers first. From editorial storytelling to detailed product specs, NovaCommerce keeps your brand voice consistent and compelling.</p>
+
+<section class="about-grid">
+    <article class="card">
+        <h2>Multi-brand expertise</h2>
+        <p class="muted">We specialize in European truck parts for Mercedes, MAN, DAF, Renault, Volvo, Scania, and Iveco. We also stock tractor parts for Fiat, Massey, and UTB—plus bumper reinforcements and engine cradles for passenger vehicles.</p>
     </article>
-    <article>
-        <h2>What we deliver</h2>
-        <ul>
-            <li>Composable FastAPI backend ready for real-time updates</li>
-            <li>Reusable UI components for catalog, marketing, and support pages</li>
-            <li>Extensible admin workspace to manage every aspect of your catalog</li>
-        </ul>
+    <article class="card">
+        <h2>Growth mindset</h2>
+        <p class="muted">From day one, we’ve aimed to become a national reference in the multi-brand sector by combining product breadth with attentive service.</p>
     </article>
+    <article class="card">
+        <h2>Customer-first</h2>
+        <p class="muted">Every interaction is backed by OEM-grade standards, timely support, and clear documentation so you can keep vehicles running safely.</p>
+    </article>
+</section>
+
+<section class="legal-card">
+    <h3>Legal Info</h3>
+    <dl>
+        <div>
+            <dt>Company</dt>
+            <dd>SVS Makine ve Otomotiv Sanayi Tic. Ltd. Şti.</dd>
+        </div>
+        <div>
+            <dt>Office</dt>
+            <dd>Yazır Mah. Güleryüzlü Sk. No:12/12 Selçuklu Konya Türkiye</dd>
+        </div>
+        <div>
+            <dt>Plant</dt>
+            <dd>Horozluhan Mah. Süha Sk No: 11 Selçuklu Konya Türkiye</dd>
+        </div>
+        <div>
+            <dt>Tax ID No</dt>
+            <dd>7881037148 / Meram V.D.</dd>
+        </div>
+        <div>
+            <dt>Commercial Reg. No</dt>
+            <dd>63138</dd>
+        </div>
+    </dl>
 </section>
 {% endblock %}
