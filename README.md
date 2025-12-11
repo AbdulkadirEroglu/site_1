@@ -6,7 +6,7 @@ A FastAPI-powered foundation for a modern product catalog experience. This start
 
 ### Requirements
 - Python 3.11+
-- PostgreSQL 14+ (or a compatible managed instance)
+- MySQL 8.0+ (or a compatible managed instance)
 
 ### Installation
 
@@ -19,7 +19,7 @@ pip install -r requirements.txt
 Create a `.env` file to override configuration as needed (all values shown here are examples):
 
 ```
-DATABASE_URL=postgresql+psycopg2://catalog_user:catalog_pass@localhost:5432/catalog
+DATABASE_URL=mysql+pymysql://catalog_user:catalog_pass@localhost:3306/catalog?charset=utf8mb4
 SECRET_KEY=please-generate-a-very-long-random-string-here
 SESSION_COOKIE_NAME=admin_session
 SESSION_COOKIE_SECURE=false  # set to true in production
@@ -73,7 +73,7 @@ Admin import/export: in the admin Products page you can download an Excel templa
 
 ### Deploying to a server (example)
 
-Prereqs: Python 3.11+, PostgreSQL reachable, and a process manager (systemd shown below).
+Prereqs: Python 3.11+, MySQL reachable (or your chosen SQL backend), and a process manager (systemd shown below).
 
 1) Copy the project to the server and set up a virtualenv:
 ```bash
@@ -174,7 +174,7 @@ requirements.txt
 
 ## Deployment readiness checklist
 - [x] Replace the placeholder `SECRET_KEY`, database URL, and session cookie name in `app/core/config.py` with environment variables specific to each server, and lock down `SessionMiddleware` cookies (`secure`, `httponly`, `max_age`, `same_site`).
-- [x] Decide on a single PostgreSQL driver (`psycopg` _or_ `psycopg2`), update `requirements.txt`, and verify dependency installation in the production environment.
+- [x] Decide on a single database driver (e.g., `pymysql` for MySQL, or `psycopg`/`psycopg2` for Postgres), update `requirements.txt`, and verify dependency installation in the production environment.
 - [ ] Document the production process manager (e.g., systemd, Supervisor, Docker) and how to run Uvicorn/Gunicorn when the site is deployed over FTP.
 - [x] Introduce Alembic migrations instead of relying on `Base.metadata.create_all()` in `scripts/bootstrap.py`, so future schema changes do not require manual intervention.
 - [x] Fix the bootstrap docs/CLI mismatch by supporting an `--email` (or updating the README to reflect `--uname`) and clearly explaining how initial admin credentials are created.
