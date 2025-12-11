@@ -6,12 +6,12 @@ from pydantic_settings import BaseSettings
 
 
 class Settings(BaseSettings):
-    project_name: str = Field(default="Product Catalog Platform", env="PROJECT_NAME")
+    project_name: str = Field(default="SVS", env="PROJECT_NAME")
     database_url: str = Field(..., env="DATABASE_URL")
     secret_key: str = Field(..., env="SECRET_KEY")
     session_cookie_name: str = Field(default="admin_session", env="SESSION_COOKIE_NAME")
     session_cookie_secure: bool = Field(default=True, env="SESSION_COOKIE_SECURE")
-    session_cookie_max_age: int | None = Field(default=60 * 60 * 4, env="SESSION_COOKIE_MAX_AGE")
+    session_cookie_max_age: int = Field(default=60 * 60 * 4, env="SESSION_COOKIE_MAX_AGE")
     session_cookie_same_site: Literal["lax", "strict", "none"] = Field(
         default="lax", env="SESSION_COOKIE_SAME_SITE"
     )
