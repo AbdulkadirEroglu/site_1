@@ -16,7 +16,13 @@ source .venv/bin/activate
 pip install -r requirements.txt
 ```
 
-Create a `.env` file to override configuration as needed (all values shown here are examples):
+Generate a strong `SECRET_KEY` (at least 32 characters; 64+ recommended) and create a `.env` file to override configuration as needed. Example command to generate a key:
+
+```bash
+python -c "import secrets; print(secrets.token_urlsafe(64))"
+```
+
+Sample `.env` (all values shown here are examples):
 
 ```
 DATABASE_URL=mysql+pymysql://catalog_user:catalog_pass@localhost:3306/catalog?charset=utf8mb4
