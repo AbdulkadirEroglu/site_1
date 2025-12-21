@@ -3,7 +3,7 @@ from datetime import datetime
 import re
 from collections import defaultdict
 from pathlib import Path
-from typing import Any, Callable, Optional, Union
+from typing import Any, Callable, Dict, List, Optional, Set, Tuple, Union
 from uuid import uuid4
 import io
 from urllib.parse import quote
@@ -67,12 +67,12 @@ class ImageUploadError(Exception):
 
 
 async def _process_new_uploads(
-    files: Optional[list[UploadFile]],
+    files: Optional[List[UploadFile]],
     *,
     default_alt: str,
     starting_order: int = 0,
-) -> list[ProductImage]:
-    saved_images: list[ProductImage] = []
+) -> List[ProductImage]:
+    saved_images: List[ProductImage] = []
     if not files:
         return saved_images
 
@@ -126,7 +126,7 @@ def _remove_image_file(image_url: Optional[str]) -> None:
         full_path.unlink()
 
 
-def _build_context(request: Request, extra: dict[str, Any]) -> dict[str, Any]:
+def _build_context(request: Request, extra: Dict[str, Any]) -> Dict[str, Any]:
     context = {"request": request, "csrf_token": ensure_csrf_token(request)}
     context.update(extra)
     return context
@@ -139,8 +139,8 @@ def _client_identifier(request: Request) -> str:
 
 
 def _coerce_uploads(
-    files: Union[UploadFile, list[UploadFile], None],
-) -> list[UploadFile]:
+    files: Union[UploadFile, List[UploadFile], None],
+) -> List[UploadFile]:
     if not files:
         return []
     if isinstance(files, list):
@@ -152,17 +152,17 @@ def _category_parent_options(
     db: Session,
     *,
     include_predicate: Optional[Callable[[Category], bool]] = None,
-) -> list[dict[str, str]]:
+) -> List[Dict[str, str]]:
     categories = db.scalars(select(Category).order_by(Category.order.asc(), Category.name.asc())).all()
-    children_map: dict[Optional[int], list[Category]] = defaultdict(list)
+    children_map: Dict[Optional[int], List[Category]] = defaultdict(list)
     for category in categories:
         children_map[category.parent_id].append(category)
 
     for siblings in children_map.values():
         siblings.sort(key=lambda c: (c.order, c.name.lower()))
 
-    options: list[dict[str, str]] = []
-    visited: set[int] = set()
+    options: List[Dict[str, str]] = []
+    visited: Set[int] = set()
 
     def _visit(node: Category, depth: int) -> None:
         prefix = "-- " * depth
@@ -183,7 +183,7 @@ def _category_parent_options(
     return options
 
 
-def _category_tree_with_stats(db: Session) -> list[dict[str, Any]]:
+def _category_tree_with_stats(db: Session) -> List[Dict[str, Any]]:
     rows = db.execute(
         select(
             Category.id,
@@ -207,8 +207,8 @@ def _category_tree_with_stats(db: Session) -> list[dict[str, Any]]:
         )
     ).all()
 
-    nodes: dict[int, dict[str, Any]] = {}
-    children_map: dict[Optional[int], list[dict[str, Any]]] = defaultdict(list)
+    nodes: Dict[int, Dict[str, Any]] = {}
+    children_map: Dict[Optional[int], List[Dict[str, Any]]] = defaultdict(list)
 
     for row in rows:
         node = {
@@ -227,10 +227,10 @@ def _category_tree_with_stats(db: Session) -> list[dict[str, Any]]:
     for siblings in children_map.values():
         siblings.sort(key=lambda item: (item["order"], item["name"].lower()))
 
-    ordered: list[dict[str, Any]] = []
-    visited: set[int] = set()
+    ordered: List[Dict[str, Any]] = []
+    visited: Set[int] = set()
 
-    def _visit(node: dict[str, Any], depth: int) -> None:
+    def _visit(node: Dict[str, Any], depth: int) -> None:
         node["depth"] = depth
         ordered.append(node)
         visited.add(node["id"])
@@ -547,7 +547,7 @@ def _ensure_category_path(db: Session, path: str) -> Optional[int]:
 def _category_path_string(category: Optional[Category]) -> str:
     if not category:
         return ""
-    names: list[str] = []
+    names: List[str] = []
     current = category
     while current:
         names.append(current.name)
@@ -765,7 +765,7 @@ async def create_product(
     oem_number: str = Form(...),
     summary: str = Form(""),
     category_id: str = Form(""),
-    new_images: Union[UploadFile, list[UploadFile], None] = File(default=None),
+    new_images: Union[UploadFile, List[UploadFile], None] = File(default=None),
     csrf_token: str = Form(...),
     is_active: bool = Form(False),
     db: Session = Depends(get_db),
@@ -923,7 +923,7 @@ async def update_product(
     oem_number: str = Form(...),
     summary: str = Form(""),
     category_id: str = Form(""),
-    new_images: Union[UploadFile, list[UploadFile], None] = File(default=None),
+    new_images: Union[UploadFile, List[UploadFile], None] = File(default=None),
     csrf_token: str = Form(...),
     is_active: bool = Form(False),
     db: Session = Depends(get_db),
@@ -957,8 +957,8 @@ async def update_product(
 
     form_payload = await request.form()
 
-    def _existing_images_context() -> list[dict[str, Any]]:
-        serialized: list[dict[str, Any]] = []
+    def _existing_images_context() -> List[Dict[str, Any]]:
+        serialized: List[Dict[str, Any]] = []
         for image in sorted(product.images, key=lambda img: img.sort_order):
             serialized.append(
                 {
@@ -1015,8 +1015,8 @@ async def update_product(
         if not category_obj:
             return _render_error("Selected category does not exist.")
 
-    image_updates: list[tuple[ProductImage, str, int]] = []
-    images_to_delete: list[ProductImage] = []
+    image_updates: List[Tuple[ProductImage, str, int]] = []
+    images_to_delete: List[ProductImage] = []
     for image in sorted(product.images, key=lambda img: img.sort_order):
         delete_flag = form_payload.get(f"existing_image_delete_{image.id}")
         alt_value = form_payload.get(f"existing_image_alt_{image.id}", "").strip()
@@ -1383,7 +1383,7 @@ def delete_category(
         return _render_categories_page(request, admin, db, message="Category not found.", message_kind="error")
 
     to_visit = [category]
-    collected_ids: list[int] = []
+    collected_ids: List[int] = []
     while to_visit:
         current = to_visit.pop()
         collected_ids.append(current.id)

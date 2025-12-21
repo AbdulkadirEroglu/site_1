@@ -1,7 +1,7 @@
 import json
 import logging
 from datetime import datetime
-from typing import Optional
+from typing import Any, Dict, List, Optional
 from urllib.parse import urlparse
 
 from fastapi import APIRouter, Depends, Form, HTTPException, Query, Request
@@ -34,7 +34,7 @@ VISIT_WINDOW_SECONDS = 1800  # 30 minutes
 
 def _serialize_product(product: Product) -> dict:
     primary_image = None
-    gallery: list[dict] = []
+    gallery: List[Dict[str, Any]] = []
     if product.images:
         sorted_images = sorted(product.images, key=lambda image: image.sort_order)
         primary_image = {
@@ -62,9 +62,9 @@ def _serialize_product(product: Product) -> dict:
     }
 
 
-def _normalize_cart(request: Request) -> dict[int, int]:
+def _normalize_cart(request: Request) -> Dict[int, int]:
     raw_cart = request.session.get(CART_SESSION_KEY, {}) or {}
-    normalized: dict[int, int] = {}
+    normalized: Dict[int, int] = {}
     for key, value in raw_cart.items():
         try:
             product_id = int(key)
@@ -91,7 +91,7 @@ def _cart_context(request: Request, db: Session) -> dict:
     )
     product_map = {product.id: product for product in products}
 
-    items: list[dict] = []
+    items: List[Dict[str, Any]] = []
     for product_id, quantity in cart_map.items():
         product = product_map.get(product_id)
         if not product:
@@ -166,8 +166,8 @@ def _track_visit(request: Request, db: Session) -> None:
     request.session[VISIT_SESSION_KEY] = now_ts
 
 
-def _notification_recipients() -> list[str]:
-    recipients: list[str] = []
+def _notification_recipients() -> List[str]:
+    recipients: List[str] = []
     if settings.notification_email:
         recipients.append(settings.notification_email)
     elif settings.smtp_sender:
@@ -345,7 +345,7 @@ def add_to_cart(
     request: Request,
     product_id: int = Form(...),
     quantity: int = Form(1),
-    redirect_to: str | None = Form(None),
+    redirect_to: Optional[str] = Form(None),
     db: Session = Depends(get_db),
 ):
     product = db.get(Product, product_id)
@@ -368,7 +368,7 @@ def update_cart_quantity(
     request: Request,
     product_id: int = Form(...),
     quantity: int = Form(...),
-    redirect_to: str | None = Form(None),
+    redirect_to: Optional[str] = Form(None),
     db: Session = Depends(get_db),
 ):
     product = db.get(Product, product_id)
@@ -391,7 +391,7 @@ def update_cart_quantity(
 def remove_from_cart(
     request: Request,
     product_id: int = Form(...),
-    redirect_to: str | None = Form(None),
+    redirect_to: Optional[str] = Form(None),
 ):
     cart = _normalize_cart(request)
     cart.pop(product_id, None)
@@ -401,7 +401,7 @@ def remove_from_cart(
 
 
 @router.post("/cart/clear")
-def clear_cart(request: Request, redirect_to: str | None = Form(None)):
+def clear_cart(request: Request, redirect_to: Optional[str] = Form(None)):
     request.session[CART_SESSION_KEY] = {}
     target = _safe_redirect_target(redirect_to, request)
     return RedirectResponse(target, status_code=303)

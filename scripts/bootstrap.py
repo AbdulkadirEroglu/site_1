@@ -12,6 +12,7 @@ import argparse
 import sys
 from pathlib import Path
 from getpass import getpass
+from typing import Optional, Tuple
 
 from sqlalchemy import inspect, select, text
 
@@ -63,7 +64,7 @@ def apply_schema_migrations() -> None:
     # Site metrics table will be created by Base.metadata.create_all if missing; nothing to alter here.
 
 
-def ensure_admin_user(uname: str, password: str | None, name: str | None) -> tuple[AdminUser, bool]:
+def ensure_admin_user(uname: str, password: Optional[str], name: Optional[str]) -> Tuple[AdminUser, bool]:
     """Create or update the admin user record matching the email.
 
     Returns the admin instance and a flag indicating whether it was newly created.
