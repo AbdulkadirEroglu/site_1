@@ -12,13 +12,6 @@
                 <input id="hero-search" name="q" type="search" placeholder="Product code, OEM number, part name..." />
                 <button type="submit" class="btn primary">Search catalog</button>
             </form>
-            {% if popular_products %}
-            <div class="hero-pills" aria-label="Popular products">
-                {% for product in popular_products[:3] %}
-                <a class="pill" href="/products/{{ product.id }}">Popular: {{ product.name }}</a>
-                {% endfor %}
-            </div>
-            {% endif %}
         </div>
         <div class="hero-visual" aria-hidden="true">
             <div class="hero-visual-inner">
