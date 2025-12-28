@@ -64,14 +64,17 @@ const initCkeditor = () => {
         warnings.forEach((warning) => warning.classList.add('is-visible'));
     };
 
-    if (!window.ClassicEditor) {
-        console.warn('CKEditor assets missing. Place ckeditor5.js in static/vendor/ckeditor/.');
+    const editorConstructor =
+        window.ClassicEditor || (window.CKEDITOR && window.CKEDITOR.ClassicEditor);
+
+    if (!editorConstructor) {
+        console.warn('CKEditor assets missing. Place ckeditor5.umd.js in static/vendor/ckeditor/.');
         showWarning();
         return;
     }
 
     const pluginNames = new Set(
-        (ClassicEditor.builtinPlugins || [])
+        (editorConstructor.builtinPlugins || [])
             .map((plugin) => plugin.pluginName)
             .filter((name) => name)
     );
@@ -123,21 +126,22 @@ const initCkeditor = () => {
     const toolbarItems = buildToolbar();
 
     fields.forEach((field) => {
-        ClassicEditor.create(
-            field,
-            toolbarItems.length
-                ? {
-                      toolbar: {
-                          items: toolbarItems,
-                          shouldNotGroupWhenFull: true,
-                      },
-                      link: {
-                          defaultProtocol: 'https://',
-                          addTargetToExternalLinks: true,
-                      },
-                  }
-                : {}
-        )
+        editorConstructor
+            .create(
+                field,
+                toolbarItems.length
+                    ? {
+                          toolbar: {
+                              items: toolbarItems,
+                              shouldNotGroupWhenFull: true,
+                          },
+                          link: {
+                              defaultProtocol: 'https://',
+                              addTargetToExternalLinks: true,
+                          },
+                      }
+                    : {}
+            )
             .then((editor) => {
                 const form = field.closest('form');
                 if (form) {
