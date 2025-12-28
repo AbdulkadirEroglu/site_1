@@ -140,6 +140,19 @@ body.admin-body.theme-dark .btn.danger {
     font-size: 0.95rem;
 }
 
+.form-warning {
+    background: rgba(251, 191, 36, 0.18);
+    border: 1px solid rgba(251, 191, 36, 0.45);
+    color: #92400e;
+    border-radius: 14px;
+    padding: 0.85rem 1rem;
+    font-size: 0.95rem;
+}
+
+body.admin-body.theme-dark .form-warning {
+    color: #fde68a;
+}
+
 .auth-card h1 {
     margin: 0;
 }
@@ -609,6 +622,14 @@ body.admin-body.theme-dark .theme-icon-moon {
     outline: none;
     border-color: rgba(56, 189, 248, 0.6);
     box-shadow: 0 0 0 2px rgba(56, 189, 248, 0.2);
+}
+
+.editor-warning {
+    display: none;
+}
+
+.editor-warning.is-visible {
+    display: block;
 }
 
 .admin-body .ck {

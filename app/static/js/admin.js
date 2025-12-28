@@ -59,8 +59,14 @@ const initCkeditor = () => {
     const fields = document.querySelectorAll('[data-ckeditor]');
     if (!fields.length) return;
 
+    const warnings = document.querySelectorAll('[data-ckeditor-warning]');
+    const showWarning = () => {
+        warnings.forEach((warning) => warning.classList.add('is-visible'));
+    };
+
     if (!window.ClassicEditor) {
-        console.warn('CKEditor assets missing. Place ckeditor.js in static/vendor/ckeditor/.');
+        console.warn('CKEditor assets missing. Place ckeditor5.js in static/vendor/ckeditor/.');
+        showWarning();
         return;
     }
 
@@ -142,6 +148,7 @@ const initCkeditor = () => {
             })
             .catch((error) => {
                 console.error('Failed to initialize CKEditor.', error);
+                showWarning();
             });
     });
 };
