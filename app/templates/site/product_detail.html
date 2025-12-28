@@ -9,9 +9,6 @@
         {% if product.category %}
         <span class="pill">Category · {{ product.category }}</span>
         {% endif %}
-        {% if product.created_at %}
-        <span class="pill muted">Added {{ product.created_at.strftime("%b %d, %Y") }}</span>
-        {% endif %}
     </div>
 </section>
 
