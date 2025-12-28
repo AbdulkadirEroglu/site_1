@@ -24,11 +24,12 @@ templates = Jinja2Templates(directory="app/templates")
 templates.env.globals["now"] = datetime.utcnow
 templates.env.filters["markdown"] = lambda text: Markup(md.markdown(text or "", extensions=["extra", "sane_lists"]))
 templates.env.filters["richtext"] = render_rich_text
-templates.env.globals["static_version"] = settings.static_version
 
 router = APIRouter(tags=["Site"])
 logger = logging.getLogger("app.site")
 settings = get_settings()
+
+templates.env.globals["static_version"] = settings.static_version
 
 CART_SESSION_KEY = "cart"
 VISIT_SESSION_KEY = "site_visit_last_ts"
