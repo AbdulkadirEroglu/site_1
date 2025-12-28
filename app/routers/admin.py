@@ -9,6 +9,8 @@ import io
 from urllib.parse import quote
 
 from openpyxl import Workbook, load_workbook
+from markupsafe import Markup
+import markdown as md
 
 from fastapi import APIRouter, Depends, File, Form, Query, Request, UploadFile, status
 from fastapi.responses import HTMLResponse, RedirectResponse, StreamingResponse
@@ -24,6 +26,7 @@ from app.db.models import AdminUser, Category, Lead, Product, ProductImage, Site
 from app.db.session import get_db
 
 templates = Jinja2Templates(directory="app/templates")
+templates.env.filters["markdown"] = lambda text: Markup(md.markdown(text or "", extensions=["extra", "sane_lists"]))
 
 router = APIRouter(prefix="/admin", tags=["Admin"])
 

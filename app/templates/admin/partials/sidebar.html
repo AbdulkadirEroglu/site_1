@@ -12,6 +12,12 @@
         <a href="/admin/categories" class="nav-link {% if page == 'categories' %}is-active{% endif %}">Categories</a>
         <a href="/admin/leads" class="nav-link {% if page == 'leads' %}is-active{% endif %}">Leads</a>
     </nav>
+    <div class="theme-toggle-row">
+        <span class="theme-toggle-label">Theme</span>
+        <button class="theme-toggle" type="button" aria-label="Toggle dark theme" data-theme-toggle>
+            <span class="theme-icon" data-theme-icon aria-hidden="true">Dark</span>
+        </button>
+    </div>
     <form method="post" action="/admin/logout">
         <input type="hidden" name="csrf_token" value="{{ csrf_token }}" />
         <button class="btn ghost" type="submit">Sign out</button>

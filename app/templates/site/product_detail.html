@@ -88,7 +88,7 @@
             <div class="featured-content">
                 <h3>{{ product.name }}</h3>
                 <p class="catalog-meta">OEM {{ product.oem_number }} · Part {{ product.sku }}</p>
-                <p>{{ product.summary or "Details coming soon." }}</p>
+                <div class="rich-copy summary-snippet">{{ (product.summary or "Details coming soon.")|markdown }}</div>
                 <div class="card-actions">
                     <a class="btn ghost" href="/products/{{ product.id }}">View details</a>
                     <form method="post" action="/cart/add">

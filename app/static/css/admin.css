@@ -1,4 +1,37 @@
 :root {
+    --background: #f8fafc;
+    --surface: #ffffff;
+    --surface-alt: rgba(15, 23, 42, 0.04);
+    --accent: #0ea5e9;
+    --accent-strong: #0284c7;
+    --text: #0f172a;
+    --muted: #64748b;
+    --border: rgba(148, 163, 184, 0.45);
+    --radius: 16px;
+    --body-gradient-start: #f5f7fb;
+    --body-gradient-mid: #e7eef6;
+    --body-gradient-end: #f8fafc;
+    --sidebar-bg: rgba(255, 255, 255, 0.95);
+    --content-bg: rgba(255, 255, 255, 0.72);
+    --panel-bg: rgba(255, 255, 255, 0.95);
+    --card-bg: #ffffff;
+    --table-head-bg: rgba(15, 23, 42, 0.04);
+    --table-row-bg: #ffffff;
+    --input-bg: #f8fafc;
+    --image-manager-bg: rgba(255, 255, 255, 0.9);
+    --image-card-bg: #ffffff;
+    --image-card-header-bg: #f1f5f9;
+    --shadow-soft: 0 20px 45px -30px rgba(15, 23, 42, 0.35);
+    font-family: "Inter", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+}
+
+body.admin-body {
+    margin: 0;
+    background: linear-gradient(160deg, var(--body-gradient-start), var(--body-gradient-mid) 60%, var(--body-gradient-end));
+    color: var(--text);
+}
+
+body.admin-body.theme-dark {
     --background: #0f172a;
     --surface: #111c36;
     --surface-alt: rgba(255, 255, 255, 0.04);
@@ -7,14 +40,20 @@
     --text: #f8fafc;
     --muted: #94a3b8;
     --border: rgba(148, 163, 184, 0.2);
-    --radius: 16px;
-    font-family: "Inter", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-}
-
-body.admin-body {
-    margin: 0;
-    background: linear-gradient(160deg, #0b1323, #111c36 60%, #0f172a);
-    color: var(--text);
+    --body-gradient-start: #0b1323;
+    --body-gradient-mid: #111c36;
+    --body-gradient-end: #0f172a;
+    --sidebar-bg: rgba(15, 23, 42, 0.85);
+    --content-bg: rgba(15, 23, 42, 0.55);
+    --panel-bg: rgba(15, 23, 42, 0.78);
+    --card-bg: rgba(15, 23, 42, 0.8);
+    --table-head-bg: rgba(148, 163, 184, 0.06);
+    --table-row-bg: rgba(15, 23, 42, 0.6);
+    --input-bg: rgba(15, 23, 42, 0.6);
+    --image-manager-bg: rgba(15, 23, 42, 0.45);
+    --image-card-bg: rgba(15, 23, 42, 0.7);
+    --image-card-header-bg: rgba(8, 15, 32, 0.9);
+    --shadow-soft: 0 20px 45px -30px rgba(8, 15, 32, 0.6);
 }
 
 .muted {
@@ -63,6 +102,16 @@ body.admin-body {
     border: 1px solid var(--border);
 }
 
+.btn.danger {
+    background: rgba(248, 113, 113, 0.15);
+    color: #b91c1c;
+    border: 1px solid rgba(248, 113, 113, 0.45);
+}
+
+body.admin-body.theme-dark .btn.danger {
+    color: #fecaca;
+}
+
 .auth-container {
     min-height: 100vh;
     display: grid;
@@ -71,7 +120,7 @@ body.admin-body {
 }
 
 .auth-card {
-    background: rgba(15, 23, 42, 0.75);
+    background: var(--panel-bg);
     backdrop-filter: blur(16px);
     border-radius: 20px;
     padding: 2.5rem;
@@ -79,6 +128,7 @@ body.admin-body {
     display: grid;
     gap: 1.25rem;
     width: min(420px, 100%);
+    box-shadow: var(--shadow-soft);
 }
 
 .form-error {
@@ -102,11 +152,11 @@ body.admin-body {
 
 .auth-card input {
     border-radius: 12px;
-    border: 1px solid rgba(148, 163, 184, 0.25);
+    border: 1px solid var(--border);
     padding: 0.75rem 0.85rem;
     font-size: 1rem;
     font-family: inherit;
-    background: rgba(15, 23, 42, 0.6);
+    background: var(--input-bg);
     color: var(--text);
 }
 
@@ -131,7 +181,7 @@ body.admin-body {
 }
 
 .admin-sidebar {
-    background: rgba(15, 23, 42, 0.85);
+    background: var(--sidebar-bg);
     backdrop-filter: blur(18px);
     border-right: 1px solid var(--border);
     padding: 2rem 1.5rem;
@@ -173,6 +223,48 @@ body.admin-body {
     margin-top: 2rem;
 }
 
+.theme-toggle-row {
+    margin-top: 1.5rem;
+    padding: 0.6rem 0.75rem;
+    border-radius: 12px;
+    border: 1px solid var(--border);
+    background: var(--surface-alt);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+}
+
+.theme-toggle-label {
+    font-size: 0.85rem;
+    color: var(--muted);
+    font-weight: 500;
+}
+
+.theme-toggle {
+    padding: 0.4rem 0.7rem;
+    border-radius: 12px;
+    border: 1px solid var(--border);
+    background: var(--surface);
+    color: var(--text);
+    display: grid;
+    place-items: center;
+    cursor: pointer;
+    transition: transform 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
+}
+
+.theme-toggle:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 12px 20px -16px rgba(15, 23, 42, 0.6);
+}
+
+.theme-icon {
+    font-size: 0.7rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+}
+
 .admin-sidebar .nav-link {
     text-decoration: none;
     color: var(--muted);
@@ -191,7 +283,7 @@ body.admin-body {
     padding: 2rem 3rem;
     display: grid;
     gap: 2rem;
-    background: rgba(15, 23, 42, 0.55);
+    background: var(--content-bg);
     backdrop-filter: blur(18px);
 }
 
@@ -218,7 +310,7 @@ body.admin-body {
 }
 
 .stats-grid article {
-    background: rgba(15, 23, 42, 0.8);
+    background: var(--card-bg);
     border-radius: var(--radius);
     padding: 1.5rem;
     border: 1px solid var(--border);
@@ -237,7 +329,7 @@ body.admin-body {
 }
 
 .panel {
-    background: rgba(15, 23, 42, 0.78);
+    background: var(--panel-bg);
     border-radius: var(--radius);
     border: 1px solid var(--border);
     padding: 2rem;
@@ -280,13 +372,13 @@ body.admin-body {
 }
 
 .table-head {
-    background: rgba(148, 163, 184, 0.06);
+    background: var(--table-head-bg);
     color: var(--muted);
     font-size: 0.9rem;
 }
 
 .table-row {
-    background: rgba(15, 23, 42, 0.6);
+    background: var(--table-row-bg);
     border: 1px solid var(--border);
 }
 
@@ -317,8 +409,8 @@ body.admin-body {
 
 .panel header input {
     border-radius: 10px;
-    border: 1px solid rgba(148, 163, 184, 0.25);
-    background: rgba(15, 23, 42, 0.6);
+    border: 1px solid var(--border);
+    background: var(--input-bg);
     color: var(--text);
     padding: 0.6rem 0.75rem;
     font-family: inherit;
@@ -355,7 +447,7 @@ body.admin-body {
 
 .activity-meta {
     font-size: 0.85rem;
-    color: rgba(248, 250, 252, 0.7);
+    color: var(--muted);
 }
 
 .admin-form {
@@ -374,11 +466,11 @@ body.admin-body {
 .admin-form textarea,
 .admin-form select {
     border-radius: 12px;
-    border: 1px solid rgba(148, 163, 184, 0.25);
+    border: 1px solid var(--border);
     padding: 0.75rem 0.85rem;
     font-size: 1rem;
     font-family: inherit;
-    background: rgba(15, 23, 42, 0.6);
+    background: var(--input-bg);
     color: var(--text);
 }
 
@@ -396,6 +488,168 @@ body.admin-body {
     background-repeat: no-repeat;
 }
 
+.toggle-field {
+    display: grid;
+    gap: 0.5rem;
+}
+
+.toggle-title {
+    font-weight: 600;
+    color: var(--muted);
+}
+
+.toggle-switch {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.35rem 0.75rem;
+    border-radius: 999px;
+    border: 1px solid var(--border);
+    background: var(--surface-alt);
+    width: fit-content;
+    cursor: pointer;
+}
+
+.toggle-switch input {
+    position: absolute;
+    opacity: 0;
+    pointer-events: none;
+}
+
+.toggle-slider {
+    width: 46px;
+    height: 24px;
+    border-radius: 999px;
+    background: rgba(148, 163, 184, 0.4);
+    position: relative;
+    transition: background 0.2s ease;
+}
+
+.toggle-slider::after {
+    content: "";
+    width: 18px;
+    height: 18px;
+    border-radius: 999px;
+    background: #ffffff;
+    position: absolute;
+    top: 3px;
+    left: 3px;
+    transition: transform 0.2s ease;
+    box-shadow: 0 6px 12px -8px rgba(15, 23, 42, 0.6);
+}
+
+.toggle-switch input:checked + .toggle-slider {
+    background: var(--accent);
+}
+
+.toggle-switch input:checked + .toggle-slider::after {
+    transform: translateX(22px);
+}
+
+.toggle-state {
+    display: inline-flex;
+    gap: 0.35rem;
+    font-weight: 600;
+    font-size: 0.9rem;
+}
+
+.toggle-state-on {
+    color: var(--accent);
+}
+
+.toggle-state-off {
+    color: var(--muted);
+}
+
+.toggle-switch input:checked ~ .toggle-state .toggle-state-off {
+    color: rgba(148, 163, 184, 0.7);
+}
+
+.toggle-switch input:not(:checked) ~ .toggle-state .toggle-state-on {
+    color: rgba(148, 163, 184, 0.7);
+}
+
+.rich-field {
+    display: grid;
+    gap: 0.6rem;
+}
+
+.rich-field .field-label {
+    font-weight: 500;
+    color: var(--muted);
+}
+
+.rich-toolbar {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.35rem;
+    align-items: center;
+    padding: 0.5rem;
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    background: var(--surface-alt);
+}
+
+.rich-toolbar select,
+.rich-toolbar button,
+.rich-toolbar input[type="color"] {
+    border-radius: 10px;
+    border: 1px solid var(--border);
+    background: var(--surface);
+    color: var(--text);
+    font-family: inherit;
+    font-size: 0.85rem;
+    padding: 0.4rem 0.55rem;
+}
+
+.rich-toolbar button {
+    cursor: pointer;
+    font-weight: 600;
+    min-width: 36px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.rich-btn.underline {
+    text-decoration: underline;
+}
+
+.rich-toolbar input[type="color"] {
+    padding: 0.15rem;
+    width: 38px;
+    height: 34px;
+}
+
+.rich-editor {
+    min-height: 180px;
+    border-radius: 12px;
+    border: 1px solid var(--border);
+    background: var(--input-bg);
+    color: var(--text);
+    padding: 0.85rem;
+    line-height: 1.5;
+}
+
+.rich-editor:focus {
+    outline: none;
+    border-color: rgba(56, 189, 248, 0.6);
+    box-shadow: 0 0 0 2px rgba(56, 189, 248, 0.2);
+}
+
+.rich-editor:empty::before {
+    content: attr(data-placeholder);
+    color: rgba(148, 163, 184, 0.7);
+}
+
+.rich-editor p {
+    margin: 0 0 0.5rem 0;
+}
+
+.rich-editor p:last-child {
+    margin-bottom: 0;
+}
+
 .admin-form input:focus,
 .admin-form textarea:focus,
 .admin-form select:focus {
@@ -406,7 +660,7 @@ body.admin-body {
 
 .field-note {
     font-size: 0.85rem;
-    color: rgba(148, 163, 184, 0.7);
+    color: var(--muted);
     font-weight: 400;
 }
 
@@ -414,7 +668,7 @@ body.admin-body {
     padding: 1.25rem;
     border: 1px dashed rgba(148, 163, 184, 0.35);
     border-radius: 16px;
-    background: rgba(15, 23, 42, 0.45);
+    background: var(--image-manager-bg);
     display: grid;
     gap: 1rem;
 }
@@ -435,8 +689,8 @@ body.admin-body {
 }
 
 .image-card {
-    background: rgba(15, 23, 42, 0.7);
-    border: 1px solid rgba(148, 163, 184, 0.25);
+    background: var(--image-card-bg);
+    border: 1px solid var(--border);
     border-radius: 16px;
     overflow: hidden;
     display: flex;
@@ -448,9 +702,10 @@ body.admin-body {
 .image-card-header {
     width: 100%;
     height: 180px;
-    background: rgba(8, 15, 32, 0.9);
+    background: var(--image-card-header-bg);
     display: grid;
     place-items: center;
+    position: relative;
 }
 
 .image-card-header img {
@@ -471,6 +726,42 @@ body.admin-body {
     align-items: flex-end;
 }
 
+.image-delete {
+    display: grid;
+    gap: 0.35rem;
+    align-items: flex-start;
+}
+
+.image-delete-note {
+    font-size: 0.8rem;
+    color: #ef4444;
+    font-weight: 600;
+    display: none;
+}
+
+.image-card.is-marked {
+    border-color: rgba(248, 113, 113, 0.55);
+    box-shadow: 0 0 0 1px rgba(248, 113, 113, 0.15);
+}
+
+.image-card.is-marked .image-delete-note {
+    display: inline-flex;
+}
+
+.image-card.is-marked .image-card-header::after {
+    content: "Marked for removal";
+    position: absolute;
+    inset: auto 0 0 0;
+    background: rgba(248, 113, 113, 0.85);
+    color: #fff;
+    font-size: 0.8rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    padding: 0.3rem 0.6rem;
+    text-align: center;
+}
+
 .checkbox-inline {
     display: flex;
     align-items: center;
@@ -479,7 +770,7 @@ body.admin-body {
 }
 
 .checkbox-inline span {
-    color: rgba(248, 250, 252, 0.7);
+    color: var(--muted);
     transition: color 0.2s ease;
 }
 
