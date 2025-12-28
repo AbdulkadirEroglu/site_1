@@ -29,12 +29,14 @@ from app.db.session import get_db
 templates = Jinja2Templates(directory="app/templates")
 templates.env.filters["markdown"] = lambda text: Markup(md.markdown(text or "", extensions=["extra", "sane_lists"]))
 templates.env.filters["richtext"] = render_rich_text
+
+settings = get_settings()
+
 templates.env.globals["static_version"] = settings.static_version
 
 router = APIRouter(prefix="/admin", tags=["Admin"])
 
 logger = logging.getLogger("app.admin")
-settings = get_settings()
 login_rate_limiter = RateLimiter(
     max_requests=settings.login_rate_limit_max_attempts,
     window_seconds=settings.login_rate_limit_window_seconds,
