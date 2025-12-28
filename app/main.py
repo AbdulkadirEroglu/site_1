@@ -8,6 +8,8 @@ from datetime import datetime
 from markupsafe import Markup
 import markdown as md
 
+from app.core.text import render_rich_text
+
 from app.core.config import get_settings
 from app.core.logging import configure_logging
 from app.routers import admin, site
@@ -17,6 +19,7 @@ configure_logging(settings.log_level)
 templates = Jinja2Templates(directory="app/templates")
 templates.env.globals["now"] = datetime.utcnow
 templates.env.filters["markdown"] = lambda text: Markup(md.markdown(text or "", extensions=["extra", "sane_lists"]))
+templates.env.filters["richtext"] = render_rich_text
 templates.env.globals["static_version"] = settings.static_version
 
 app = FastAPI(title=settings.project_name)

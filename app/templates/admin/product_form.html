@@ -47,44 +47,20 @@
                 </div>
                 <div class="toggle-field">
                     <span class="toggle-title">Status</span>
-                    <label class="toggle-switch">
+                    <label class="toggle-pill">
                         <input type="checkbox" name="is_active" value="true" {% if form_data.is_active %}checked{% endif %} />
-                        <span class="toggle-slider" aria-hidden="true"></span>
-                        <span class="toggle-state">
-                            <span class="toggle-state-on">Active</span>
-                            <span class="toggle-state-off">Inactive</span>
+                        <span class="toggle-track">
+                            <span class="toggle-option toggle-option-on">Active</span>
+                            <span class="toggle-option toggle-option-off">Inactive</span>
                         </span>
                     </label>
                     <p class="field-note">Active products appear in the public catalog.</p>
                 </div>
-                <div class="rich-field" data-rich-editor>
+                <label class="rich-field">
                     <span class="field-label">Summary</span>
-                    <div class="rich-toolbar" role="toolbar" aria-label="Summary formatting">
-                        <select data-command="fontName" aria-label="Font family">
-                            <option value="">Font</option>
-                            <option value="Inter">Inter</option>
-                            <option value="Georgia">Georgia</option>
-                            <option value="Times New Roman">Times New Roman</option>
-                            <option value="Arial">Arial</option>
-                            <option value="Courier New">Courier New</option>
-                        </select>
-                        <select data-command="fontSize" aria-label="Font size">
-                            <option value="">Size</option>
-                            <option value="2">Small</option>
-                            <option value="3">Normal</option>
-                            <option value="4">Large</option>
-                            <option value="5">X-Large</option>
-                        </select>
-                        <button class="rich-btn" type="button" data-command="bold" aria-label="Bold"><strong>B</strong></button>
-                        <button class="rich-btn" type="button" data-command="italic" aria-label="Italic"><em>I</em></button>
-                        <button class="rich-btn underline" type="button" data-command="underline" aria-label="Underline">U</button>
-                        <button class="rich-btn" type="button" data-command="createLink" aria-label="Insert link">Link</button>
-                        <input type="color" value="#0ea5e9" data-command="foreColor" aria-label="Text color" />
-                    </div>
-                    <div class="rich-editor" contenteditable="true" data-rich-editor-area data-placeholder="Add a product summary..." aria-label="Product summary">{{ form_data.summary|markdown }}</div>
-                    <textarea class="sr-only" name="summary" data-rich-input>{{ form_data.summary }}</textarea>
+                    <textarea name="summary" class="editor-field" data-ckeditor rows="10">{{ form_data.summary|richtext }}</textarea>
                     <p class="field-note">Format descriptions with fonts, sizes, links, and colors.</p>
-                </div>
+                </label>
                 <section class="image-manager">
                     <header>
                         <h3>Images</h3>
@@ -134,4 +110,8 @@
         </section>
     </main>
 </div>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', path='vendor/ckeditor/ckeditor.js') }}?v={{ static_version }}"></script>
 {% endblock %}

@@ -22,11 +22,13 @@ from app.core.config import get_settings
 from app.core.csrf import ensure_csrf_token, validate_csrf_token
 from app.core.rate_limit import RateLimiter
 from app.core.security import verify_password
+from app.core.text import render_rich_text
 from app.db.models import AdminUser, Category, Lead, Product, ProductImage, SiteMetric
 from app.db.session import get_db
 
 templates = Jinja2Templates(directory="app/templates")
 templates.env.filters["markdown"] = lambda text: Markup(md.markdown(text or "", extensions=["extra", "sane_lists"]))
+templates.env.filters["richtext"] = render_rich_text
 templates.env.globals["static_version"] = settings.static_version
 
 router = APIRouter(prefix="/admin", tags=["Admin"])

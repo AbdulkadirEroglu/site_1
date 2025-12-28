@@ -91,7 +91,7 @@
                     </div>
                     <a class="mini" href="/products/{{ product.id }}">Full details</a>
                 </div>
-                <div class="slide-description rich-copy">{{ (product.summary or "No description available.")|markdown }}</div>
+                <div class="slide-description rich-copy">{{ (product.summary or "No description available.")|richtext }}</div>
                 <form method="post" action="/cart/add">
                     <input type="hidden" name="product_id" value="{{ product.id }}" />
                     <input type="hidden" name="redirect_to" value="{{ request.url.path }}" />

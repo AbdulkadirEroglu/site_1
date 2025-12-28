@@ -35,7 +35,7 @@
     </div>
     <div class="product-spec">
         <h2>Product overview</h2>
-        <div class="rich-copy">{{ (product.summary or "A detailed description will be provided soon. Contact us if you need specs or compatibility details right away.")|markdown }}</div>
+        <div class="rich-copy">{{ (product.summary or "A detailed description will be provided soon. Contact us if you need specs or compatibility details right away.")|richtext }}</div>
         <dl class="spec-grid">
             <div>
                 <dt>OEM reference</dt>
@@ -88,7 +88,7 @@
             <div class="featured-content">
                 <h3>{{ product.name }}</h3>
                 <p class="catalog-meta">OEM {{ product.oem_number }} · Part {{ product.sku }}</p>
-                <div class="rich-copy summary-snippet">{{ (product.summary or "Details coming soon.")|markdown }}</div>
+                <div class="rich-copy summary-snippet">{{ (product.summary or "Details coming soon.")|richtext }}</div>
                 <div class="card-actions">
                     <a class="btn ghost" href="/products/{{ product.id }}">View details</a>
                     <form method="post" action="/cart/add">

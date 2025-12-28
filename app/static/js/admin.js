@@ -55,95 +55,99 @@ const initImageDeleteButtons = () => {
     });
 };
 
-const initRichEditors = () => {
-    const editors = document.querySelectorAll('[data-rich-editor]');
-    if (!editors.length) return;
+const initCkeditor = () => {
+    const fields = document.querySelectorAll('[data-ckeditor]');
+    if (!fields.length) return;
 
-    const exec = (command, value = null) => {
-        document.execCommand('styleWithCSS', false, true);
-        document.execCommand(command, false, value);
+    if (!window.ClassicEditor) {
+        console.warn('CKEditor assets missing. Place ckeditor.js in static/vendor/ckeditor/.');
+        return;
+    }
+
+    const pluginNames = new Set(
+        (ClassicEditor.builtinPlugins || [])
+            .map((plugin) => plugin.pluginName)
+            .filter((name) => name)
+    );
+
+    const pluginMap = {
+        heading: 'Heading',
+        bold: 'Bold',
+        italic: 'Italic',
+        underline: 'Underline',
+        fontFamily: 'FontFamily',
+        fontSize: 'FontSize',
+        fontColor: 'FontColor',
+        fontBackgroundColor: 'FontBackgroundColor',
+        link: 'Link',
+        bulletedList: 'List',
+        numberedList: 'List',
+        undo: 'Essentials',
+        redo: 'Essentials',
     };
 
-    editors.forEach((wrapper) => {
-        const area = wrapper.querySelector('[data-rich-editor-area]');
-        const input = wrapper.querySelector('[data-rich-input]');
-        const toolbar = wrapper.querySelector('.rich-toolbar');
-        if (!area || !input || !toolbar) return;
+    const buildToolbar = () => {
+        const groups = [
+            ['heading'],
+            [
+                'bold',
+                'italic',
+                'underline',
+                'fontFamily',
+                'fontSize',
+                'fontColor',
+                'fontBackgroundColor',
+            ],
+            ['link', 'bulletedList', 'numberedList'],
+            ['undo', 'redo'],
+        ];
 
-        let savedRange = null;
+        const items = [];
 
-        const saveSelection = () => {
-            const selection = window.getSelection();
-            if (!selection || selection.rangeCount === 0) return;
-            const range = selection.getRangeAt(0);
-            if (area.contains(range.commonAncestorContainer)) {
-                savedRange = range;
-            }
-        };
-
-        const restoreSelection = () => {
-            if (!savedRange) return;
-            const selection = window.getSelection();
-            if (!selection) return;
-            selection.removeAllRanges();
-            selection.addRange(savedRange);
-        };
-
-        const syncInput = () => {
-            input.value = area.innerHTML;
-        };
-
-        toolbar.addEventListener('mousedown', (event) => {
-            if (event.target.closest('button[data-command]')) {
-                event.preventDefault();
-            }
+        groups.forEach((group) => {
+            const filtered = group.filter((item) => pluginNames.has(pluginMap[item]));
+            if (!filtered.length) return;
+            if (items.length) items.push('|');
+            items.push(...filtered);
         });
 
-        toolbar.addEventListener('click', (event) => {
-            const button = event.target.closest('button[data-command]');
-            if (!button) return;
+        return items;
+    };
 
-            const command = button.dataset.command;
-            area.focus();
-            restoreSelection();
+    const toolbarItems = buildToolbar();
 
-            if (command === 'createLink') {
-                const url = window.prompt('Enter a URL');
-                if (!url) return;
-                exec(command, url);
-                syncInput();
-                return;
-            }
-
-            exec(command);
-            syncInput();
-        });
-
-        toolbar.addEventListener('change', (event) => {
-            const control = event.target;
-            if (!control.matches('[data-command]')) return;
-            if (!control.value) return;
-            area.focus();
-            restoreSelection();
-            exec(control.dataset.command, control.value);
-            syncInput();
-        });
-
-        area.addEventListener('input', syncInput);
-        area.addEventListener('keyup', saveSelection);
-        area.addEventListener('mouseup', saveSelection);
-
-        const form = wrapper.closest('form');
-        if (form) {
-            form.addEventListener('submit', syncInput);
-        }
-
-        syncInput();
+    fields.forEach((field) => {
+        ClassicEditor.create(
+            field,
+            toolbarItems.length
+                ? {
+                      toolbar: {
+                          items: toolbarItems,
+                          shouldNotGroupWhenFull: true,
+                      },
+                      link: {
+                          defaultProtocol: 'https://',
+                          addTargetToExternalLinks: true,
+                      },
+                  }
+                : {}
+        )
+            .then((editor) => {
+                const form = field.closest('form');
+                if (form) {
+                    form.addEventListener('submit', () => {
+                        field.value = editor.getData();
+                    });
+                }
+            })
+            .catch((error) => {
+                console.error('Failed to initialize CKEditor.', error);
+            });
     });
 };
 
 window.addEventListener('DOMContentLoaded', () => {
     initAdminThemeToggle();
     initImageDeleteButtons();
-    initRichEditors();
+    initCkeditor();
 });

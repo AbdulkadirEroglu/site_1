@@ -15,6 +15,7 @@ import markdown as md
 
 from app.core.config import get_settings
 from app.core.email import send_email
+from app.core.text import render_rich_text
 from app.db.models import Category, Lead, Product, ProductImage, SiteMetric
 from app.db.session import get_db
 
@@ -22,6 +23,7 @@ from app.db.session import get_db
 templates = Jinja2Templates(directory="app/templates")
 templates.env.globals["now"] = datetime.utcnow
 templates.env.filters["markdown"] = lambda text: Markup(md.markdown(text or "", extensions=["extra", "sane_lists"]))
+templates.env.filters["richtext"] = render_rich_text
 templates.env.globals["static_version"] = settings.static_version
 
 router = APIRouter(tags=["Site"])
