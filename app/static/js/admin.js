@@ -3,15 +3,11 @@ const initAdminThemeToggle = () => {
     if (!toggle) return;
 
     const storageKey = 'admin-theme';
-    const icon = toggle.querySelector('[data-theme-icon]');
     const apply = (mode) => {
         const isDark = mode === 'dark';
         document.body.classList.toggle('theme-dark', isDark);
         toggle.setAttribute('aria-pressed', isDark ? 'true' : 'false');
         toggle.setAttribute('aria-label', isDark ? 'Switch to light theme' : 'Switch to dark theme');
-        if (icon) {
-            icon.textContent = isDark ? 'Light' : 'Dark';
-        }
     };
 
     let current = window.localStorage.getItem(storageKey) || 'light';

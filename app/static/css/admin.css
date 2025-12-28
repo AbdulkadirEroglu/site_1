@@ -242,10 +242,11 @@ body.admin-body.theme-dark .btn.danger {
 }
 
 .theme-toggle {
-    padding: 0.4rem 0.7rem;
-    border-radius: 12px;
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
     border: 1px solid var(--border);
-    background: var(--surface);
+    background: transparent;
     color: var(--text);
     display: grid;
     place-items: center;
@@ -255,14 +256,26 @@ body.admin-body.theme-dark .btn.danger {
 
 .theme-toggle:hover {
     transform: translateY(-1px);
-    box-shadow: 0 12px 20px -16px rgba(15, 23, 42, 0.6);
+    background: rgba(14, 165, 233, 0.12);
+    border-color: rgba(14, 165, 233, 0.45);
+    box-shadow: 0 12px 20px -16px rgba(15, 23, 42, 0.35);
 }
 
 .theme-icon {
-    font-size: 0.7rem;
-    font-weight: 700;
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
+    width: 18px;
+    height: 18px;
+}
+
+.theme-icon-sun {
+    display: none;
+}
+
+body.admin-body.theme-dark .theme-icon-sun {
+    display: block;
+}
+
+body.admin-body.theme-dark .theme-icon-moon {
+    display: none;
 }
 
 .admin-sidebar .nav-link {
