@@ -25,6 +25,7 @@ class Settings(BaseSettings):
     smtp_sender: str = Field(default=None, env="SMTP_SENDER")
     smtp_use_tls: bool = Field(default=True, env="SMTP_USE_TLS")
     notification_email: str = Field(default=None, env="NOTIFICATION_EMAIL")
+    static_version: str = Field(default="1", env="STATIC_VERSION")
 
     @model_validator(mode="after")
     def validate_security(self) -> "Settings":

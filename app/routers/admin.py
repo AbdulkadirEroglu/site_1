@@ -27,6 +27,7 @@ from app.db.session import get_db
 
 templates = Jinja2Templates(directory="app/templates")
 templates.env.filters["markdown"] = lambda text: Markup(md.markdown(text or "", extensions=["extra", "sane_lists"]))
+templates.env.globals["static_version"] = settings.static_version
 
 router = APIRouter(prefix="/admin", tags=["Admin"])
 
