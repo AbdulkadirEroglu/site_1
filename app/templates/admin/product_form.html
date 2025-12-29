@@ -120,5 +120,13 @@
 {% endblock %}
 
 {% block scripts %}
+<script type="importmap">
+{
+	"imports": {
+			"ckeditor5": "static/vendor/ckeditor/ckeditor/ckeditor5.js",
+			"ckeditor5/": "static/vendor/ckeditor/ckeditor/"
+			}
+	}
+</script>
 <script src="{{ url_for('static', path='vendor/ckeditor/ckeditor.js') }}?v={{ static_version }}" defer></script>
 {% endblock %}
