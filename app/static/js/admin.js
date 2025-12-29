@@ -64,6 +64,16 @@ const initCkeditor = () => {
         warnings.forEach((warning) => warning.classList.add('is-visible'));
     };
 
+    const moduleFields = document.querySelectorAll('[data-ckeditor-module]');
+    if (moduleFields.length) {
+        window.setTimeout(() => {
+            if (!document.querySelector('.ck-editor')) {
+                showWarning();
+            }
+        }, 2000);
+        return;
+    }
+
     const editorConstructor =
         window.ClassicEditor || (window.CKEDITOR && window.CKEDITOR.ClassicEditor);
 

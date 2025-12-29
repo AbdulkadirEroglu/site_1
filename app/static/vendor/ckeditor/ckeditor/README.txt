@@ -1,2 +1,2 @@
 Place the CKEditor 5 build files in this folder.
-Expected entrypoint: ckeditor.js (ClassicEditor build with font and color plugins).
+Expected module bundle: ckeditor5.js (used by app/static/vendor/ckeditor/ckeditor.js).
