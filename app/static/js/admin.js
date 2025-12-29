@@ -64,8 +64,8 @@ const initCkeditor = () => {
         warnings.forEach((warning) => warning.classList.add('is-visible'));
     };
 
-    const moduleFields = document.querySelectorAll('[data-ckeditor-module]');
-    if (moduleFields.length) {
+    const externalFields = document.querySelectorAll('[data-ckeditor-external]');
+    if (externalFields.length) {
         window.setTimeout(() => {
             if (!document.querySelector('.ck-editor')) {
                 showWarning();
@@ -78,7 +78,9 @@ const initCkeditor = () => {
         window.ClassicEditor || (window.CKEDITOR && window.CKEDITOR.ClassicEditor);
 
     if (!editorConstructor) {
-        console.warn('CKEditor assets missing. Place ckeditor.js in static/vendor/ckeditor/.');
+        console.warn(
+            'CKEditor assets missing. Place ckeditor.js and ckeditor/ckeditor5.umd.js in static/vendor/ckeditor/.'
+        );
         showWarning();
         return;
     }

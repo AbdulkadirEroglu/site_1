@@ -3,7 +3,7 @@
  * https://ckeditor.com/ckeditor-5/builder/#installation/NoNgNARATAdAnDADBSBWKUQHYAs6AcAzDhovqgIyqI4g4Ub6ZSEa74hOIiLKQCmAOxSIwwCmFGiJ0gLqQ4nQgEMQ/CLKA===
  */
 
-import {
+const {
 	ClassicEditor,
 	Autosave,
 	Essentials,
@@ -50,7 +50,7 @@ import {
 	Superscript,
 	Highlight,
 	Fullscreen
-} from 'ckeditor5';
+} = window.CKEDITOR || {};
 
 /**
  * Create a free account with a trial: https://portal.ckeditor.com/checkout?plan=free
@@ -283,4 +283,10 @@ const editorConfig = {
 	}
 };
 
-ClassicEditor.create(document.querySelector('#editor'), editorConfig);
+if (!ClassicEditor) {
+	console.warn('CKEditor globals missing. Ensure ckeditor5.umd.js is loaded first.');
+} else {
+	ClassicEditor.create(document.querySelector('#editor'), editorConfig).catch(error => {
+		console.error('Failed to initialize CKEditor.', error);
+	});
+}
