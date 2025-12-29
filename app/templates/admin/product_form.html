@@ -63,7 +63,7 @@
                 <label class="rich-field">
                     <span class="field-label">Summary</span>
                     <div class="form-warning editor-warning" data-ckeditor-warning role="alert">
-                        CKEditor failed to load. Confirm <code>ckeditor5.umd.js</code> exists in <code>app/static/vendor/ckeditor/</code> and refresh.
+                        CKEditor failed to load. Confirm <code>ckeditor.js</code> exists in <code>app/static/vendor/ckeditor/</code> and refresh.
                     </div>
                     <textarea name="summary" class="editor-field" data-ckeditor rows="10">{{ form_data.summary|richtext }}</textarea>
                     <p class="field-note">Format descriptions with fonts, sizes, links, and colors.</p>
@@ -120,5 +120,5 @@
 {% endblock %}
 
 {% block scripts %}
-<script src="{{ url_for('static', path='vendor/ckeditor/ckeditor5.umd.js') }}?v={{ static_version }}" defer></script>
+<script src="{{ url_for('static', path='vendor/ckeditor/ckeditor.js') }}?v={{ static_version }}" defer></script>
 {% endblock %}

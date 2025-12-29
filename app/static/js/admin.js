@@ -68,7 +68,7 @@ const initCkeditor = () => {
         window.ClassicEditor || (window.CKEDITOR && window.CKEDITOR.ClassicEditor);
 
     if (!editorConstructor) {
-        console.warn('CKEditor assets missing. Place ckeditor5.umd.js in static/vendor/ckeditor/.');
+        console.warn('CKEditor assets missing. Place ckeditor.js in static/vendor/ckeditor/.');
         showWarning();
         return;
     }
