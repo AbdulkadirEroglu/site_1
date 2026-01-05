@@ -578,6 +578,7 @@ body.theme-dark {
     min-height: var(--product-card-image-height);
     padding: var(--product-card-image-padding);
     overflow: hidden;
+    box-sizing: border-box;
 }
 
 .featured-image img {
@@ -867,6 +868,7 @@ body.theme-dark {
     min-height: var(--product-card-image-height);
     padding: var(--product-card-image-padding);
     overflow: hidden;
+    box-sizing: border-box;
 }
 
 .catalog-image img {
