@@ -8,7 +8,7 @@
     --muted: #5f6687;
     --border: #d9def2;
     --radius: 16px;
-    --product-card-image-height: clamp(160px, 18vw, 210px);
+    --product-card-image-ratio: 4 / 3;
     --product-card-image-padding: 1rem;
     font-family: "Inter", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
 }
@@ -566,7 +566,7 @@ body.theme-dark {
     overflow: hidden;
     background: linear-gradient(180deg, #fff 0%, rgba(255, 255, 255, 0.9) 100%);
     display: grid;
-    grid-template-rows: var(--product-card-image-height) auto;
+    grid-template-rows: auto 1fr;
 }
 
 .featured-image {
@@ -574,8 +574,8 @@ body.theme-dark {
     background: rgba(60, 90, 240, 0.05);
     display: grid;
     place-items: center;
-    height: 100%;
-    min-height: var(--product-card-image-height);
+    width: 100%;
+    aspect-ratio: var(--product-card-image-ratio);
     padding: var(--product-card-image-padding);
     overflow: hidden;
     box-sizing: border-box;
@@ -849,7 +849,7 @@ body.theme-dark {
     overflow: hidden;
     border: 1px solid var(--border);
     display: grid;
-    grid-template-rows: var(--product-card-image-height) auto;
+    grid-template-rows: auto 1fr;
     gap: 0.5rem;
     padding-bottom: 0.5rem;
 }
@@ -864,8 +864,8 @@ body.theme-dark {
     background: rgba(60, 90, 240, 0.05);
     display: grid;
     place-items: center;
-    height: 100%;
-    min-height: var(--product-card-image-height);
+    width: 100%;
+    aspect-ratio: var(--product-card-image-ratio);
     padding: var(--product-card-image-padding);
     overflow: hidden;
     box-sizing: border-box;
@@ -880,7 +880,8 @@ body.theme-dark {
 
 .featured-card .placeholder-image,
 .catalog-card .placeholder-image {
-    height: 100%;
+    width: 100%;
+    aspect-ratio: var(--product-card-image-ratio);
 }
 
 .placeholder-image {
