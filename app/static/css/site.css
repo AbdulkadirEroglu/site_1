@@ -8,6 +8,8 @@
     --muted: #5f6687;
     --border: #d9def2;
     --radius: 16px;
+    --product-card-image-height: clamp(160px, 18vw, 210px);
+    --product-card-image-padding: 1rem;
     font-family: "Inter", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
 }
 
@@ -564,7 +566,7 @@ body.theme-dark {
     overflow: hidden;
     background: linear-gradient(180deg, #fff 0%, rgba(255, 255, 255, 0.9) 100%);
     display: grid;
-    grid-template-rows: 180px auto;
+    grid-template-rows: var(--product-card-image-height) auto;
 }
 
 .featured-image {
@@ -572,13 +574,17 @@ body.theme-dark {
     background: rgba(60, 90, 240, 0.05);
     display: grid;
     place-items: center;
+    height: 100%;
+    min-height: var(--product-card-image-height);
+    padding: var(--product-card-image-padding);
+    overflow: hidden;
 }
 
 .featured-image img {
-    max-width: 100%;
-    max-height: 100%;
+    width: 100%;
+    height: 100%;
     object-fit: contain;
-    padding: 1rem;
+    display: block;
 }
 
 .featured-content {
@@ -842,9 +848,14 @@ body.theme-dark {
     overflow: hidden;
     border: 1px solid var(--border);
     display: grid;
-    grid-template-rows: 180px auto;
+    grid-template-rows: var(--product-card-image-height) auto;
     gap: 0.5rem;
     padding-bottom: 0.5rem;
+}
+
+.catalog-card-link {
+    display: block;
+    height: 100%;
 }
 
 .catalog-image {
@@ -852,14 +863,22 @@ body.theme-dark {
     background: rgba(60, 90, 240, 0.05);
     display: grid;
     place-items: center;
-    padding: 0.75rem;
+    height: 100%;
+    min-height: var(--product-card-image-height);
+    padding: var(--product-card-image-padding);
+    overflow: hidden;
 }
 
 .catalog-image img {
-    max-width: 100%;
-    max-height: 100%;
+    width: 100%;
+    height: 100%;
     object-fit: contain;
-    padding: 1rem;
+    display: block;
+}
+
+.featured-card .placeholder-image,
+.catalog-card .placeholder-image {
+    height: 100%;
 }
 
 .placeholder-image {
